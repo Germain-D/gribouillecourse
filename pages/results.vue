@@ -9,7 +9,7 @@
     
     <div v-else class="flex flex-col items-center">
       <ClientOnly>
-        <MapDisplay :coordinates="pathStore.coordinates" />
+        <MapDisplay :coordinates="pathStore.coordinates" :distance="pathStore.distance || '0 km'" />
       </ClientOnly>
       
       <div class="actions mt-6 flex gap-4">

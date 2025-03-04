@@ -1,5 +1,5 @@
 import { defineEventHandler, readBody } from 'h3';
-import { mockPathGeneration, generateGpxFromCoordinates } from '../utils/gpxGenerator';
+import { mockPathGeneration, generateGpxFromCoordinates, calculatePathDistance } from '../utils/gpxGenerator';
 
 export default defineEventHandler(async (event) => {
   try {
@@ -13,6 +13,8 @@ export default defineEventHandler(async (event) => {
     }
 
     const drawingPoints = body.points;
+    const maxDistance = body.maxDistance || 10; // Default to 10km if not specified
+    const userLocation = body.userLocation; // May be undefined
     
     if (drawingPoints.length < 2) {
       return {
@@ -22,12 +24,17 @@ export default defineEventHandler(async (event) => {
     }
 
     // Log the received points to help debugging
-    console.log(`Received ${drawingPoints.length} points for path generation`);
+    console.log(`Received ${drawingPoints.length} points for path generation with max distance: ${maxDistance}km`);
+    if (userLocation) {
+      console.log(`Using user location as starting point: [${userLocation.lat}, ${userLocation.lng}]`);
+    }
     
     // Convert drawing points to a geographically plausible route
-    // This would normally call an external API like MapBox or Google Maps Directions
-    // For now, we'll use our mock implementation
-    const coordinates = mockPathGeneration(drawingPoints);
+    const coordinates = mockPathGeneration(drawingPoints, maxDistance, userLocation);
+    
+    // Calculate the actual distance of the generated path
+    const distance = calculatePathDistance(coordinates);
+    const formattedDistance = `${distance.toFixed(2)} km`;
     
     // Generate GPX file from the coordinates
     const gpxContent = generateGpxFromCoordinates(coordinates);
@@ -36,7 +43,8 @@ export default defineEventHandler(async (event) => {
     return {
       success: true,
       coordinates: coordinates,
-      gpxContent: gpxContent
+      gpxContent: gpxContent,
+      distance: formattedDistance
     };
   } catch (error) {
     console.error('Error generating path:', error);
