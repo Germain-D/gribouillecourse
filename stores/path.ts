@@ -1,24 +1,32 @@
 import { defineStore } from 'pinia';
 
+interface Coordinate {
+  lat: number;
+  lng: number;
+}
+
+interface PathState {
+  coordinates: Coordinate[];
+  gpxContent: string | null;
+}
+
 export const usePathStore = defineStore('path', {
-  state: () => ({
-    coordinates: [] as Array<{ lat: number; lng: number }>,
-    pathName: '',
+  state: (): PathState => ({
+    coordinates: [],
+    gpxContent: null
   }),
+  
   actions: {
-    addCoordinate(lat: number, lng: number) {
-      this.coordinates.push({ lat, lng });
+    setPath(path: { coordinates: Coordinate[]; gpxContent: string }) {
+      this.coordinates = path.coordinates;
+      this.gpxContent = path.gpxContent;
     },
-    setPathName(name: string) {
-      this.pathName = name;
-    },
+    
     clearPath() {
       this.coordinates = [];
-      this.pathName = '';
-    },
+      this.gpxContent = null;
+    }
   },
-  getters: {
-    getPathCoordinates: (state) => state.coordinates,
-    getPathName: (state) => state.pathName,
-  },
+  
+  persist: true
 });

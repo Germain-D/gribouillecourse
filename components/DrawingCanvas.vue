@@ -10,7 +10,7 @@
     ></canvas>
     <div class="buttons mt-4">
       <button class="btn btn-primary" @click="clearCanvas">Effacer</button>
-      <button class="btn btn-success ml-2" @click="generatePath">Générer le parcours</button>
+      <button class="btn btn-success ml-2" @click="generatePath" :disabled="points.length < 2">Générer le parcours</button>
     </div>
   </div>
 </template>
@@ -84,7 +84,14 @@ function clearCanvas() {
 }
 
 async function generatePath() {
+  if (points.value.length < 2) {
+    alert('Veuillez dessiner un chemin avant de générer le parcours.');
+    return;
+  }
+  
   try {
+    console.log(`Sending ${points.value.length} points to generate path`);
+    
     const response = await fetch('/api/generate-path', {
       method: 'POST',
       headers: {
@@ -94,15 +101,27 @@ async function generatePath() {
     });
     
     const data = await response.json();
-    if (response.ok) {
-      // Save the generated path
-      pathStore.setPathName(data.path);
+    
+    // Check if the response contains an error status code
+    if (response.status >= 400) {
+      throw new Error(data.body?.message || 'Erreur lors de la génération du parcours');
+    }
+    
+    if (data.success) {
+      // Store the generated path in the store
+      pathStore.setPath({
+        coordinates: data.coordinates,
+        gpxContent: data.gpxContent
+      });
+      
       // Navigate to results page
       router.push('/results');
+    } else {
+      throw new Error(data.body?.message || 'Erreur lors de la génération du parcours');
     }
   } catch (error) {
     console.error('Failed to generate path:', error);
-    alert('Failed to generate path. Please try again.');
+    alert('Échec de la génération du parcours. Veuillez réessayer.');
   }
 }
 </script>

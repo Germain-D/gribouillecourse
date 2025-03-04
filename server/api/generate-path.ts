@@ -1,26 +1,48 @@
 import { defineEventHandler, readBody } from 'h3';
-//import { generateGPX } from '../utils/gpxGenerator'; // Assuming you have a utility to generate GPX
+import { mockPathGeneration, generateGpxFromCoordinates } from '../utils/gpxGenerator';
 
 export default defineEventHandler(async (event) => {
+  try {
     const body = await readBody(event);
     
-    if (!body || !body.path) {
-        return {
-            statusCode: 400,
-            body: { message: 'Path data is required' }
-        };
+    if (!body || !body.points || !Array.isArray(body.points)) {
+      return {
+        statusCode: 400,
+        body: { message: 'Valid drawing points are required' }
+      };
     }
 
-    const pathData = body.path;
+    const drawingPoints = body.points;
+    
+    if (drawingPoints.length < 2) {
+      return {
+        statusCode: 400,
+        body: { message: 'At least two points are required to generate a path' }
+      };
+    }
 
-    // Here you would implement your logic to process the path data
-    // For example, you might save it to a database or perform some calculations
+    // Log the received points to help debugging
+    console.log(`Received ${drawingPoints.length} points for path generation`);
+    
+    // Convert drawing points to a geographically plausible route
+    // This would normally call an external API like MapBox or Google Maps Directions
+    // For now, we'll use our mock implementation
+    const coordinates = mockPathGeneration(drawingPoints);
+    
+    // Generate GPX file from the coordinates
+    const gpxContent = generateGpxFromCoordinates(coordinates);
 
-    // Generate GPX from the path data
-    const gpxFile = "gpx"//generateGPX(pathData);
-
+    // Return both the coordinates (for displaying on map) and GPX (for download)
     return {
-        statusCode: 200,
-        body: { gpx: gpxFile }
+      success: true,
+      coordinates: coordinates,
+      gpxContent: gpxContent
     };
+  } catch (error) {
+    console.error('Error generating path:', error);
+    return {
+      statusCode: 500,
+      body: { message: 'Failed to generate path', error: String(error) }
+    };
+  }
 });
