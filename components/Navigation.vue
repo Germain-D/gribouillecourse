@@ -1,7 +1,7 @@
 <template>
   <nav class="flex justify-between items-center p-4 bg-base-300 text-base-content">
     <NuxtLink to="/" class="text-xl font-bold strava-font flex items-center">
-      <i class="fas fa-route pr-2 text-primary"></i>
+       <img src="/assets/img/logo-gribouillecourse-orange.png" alt="GribouilleCourse" class="w-12 h-12 mr-2" />
       <span class="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent uppercase tracking-tight">GribouilleCourse</span>
     </NuxtLink>
     <div>
