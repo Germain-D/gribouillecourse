@@ -23,6 +23,7 @@ export default defineEventHandler(async (event) => {
     const maxDistance = body.maxDistance || 10; // Default to 10km if not specified
     const userLocation = body.userLocation; // May be undefined
     const routeProfile = body.profile || 'foot'; // The type of routing (foot, bike, car)
+    const maxStartDistance = body.maxStartDistance || 0.5; // Default to 0.5km
     
     if (drawingPoints.length < 2) {
       return {

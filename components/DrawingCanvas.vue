@@ -6,7 +6,7 @@
       @mousemove="handleMouseMove"
       @mouseup="handleMouseUp"
       @mouseleave="handleMouseUp"
-      class="drawing-canvas"
+      class="drawing-canvas w-full h-96"
     ></canvas>
     
     <!-- Options de génération de parcours -->
@@ -83,7 +83,9 @@
     
     <div class="buttons mt-4">
       <button class="btn btn-primary" @click="clearCanvas">Effacer</button>
-      <button class="btn btn-success ml-2" @click="generatePath" :disabled="points.length < 2">Générer le parcours</button>
+      <button class="btn btn-success ml-2" @click="generatePath" :disabled="points.length < 2 || (!useUserLocation && !usePointOnMap)">
+        Générer le parcours
+      </button>
     </div>
   </div>
 </template>
@@ -146,10 +148,12 @@ watch(useUserLocation, (newValue) => {
 });
 
 onMounted(() => {
-  if (canvas.value) {
-    canvas.value.width = 800;  // Fixed width
-    canvas.value.height = 600; // Fixed height
-    
+  if (canvas.value) {    
+
+    // Set up the canvas size
+    canvas.value.width = canvas.value.clientWidth;
+    canvas.value.height = canvas.value.clientHeight;
+
     context.value = canvas.value.getContext('2d');
     
     if (context.value) {
@@ -203,6 +207,12 @@ function clearCanvas() {
 async function generatePath() {
   if (points.value.length < 2) {
     alert('Veuillez dessiner un chemin avant de générer le parcours.');
+    return;
+  }
+
+  // si aucune option n'est sélectionnée
+  if (!useUserLocation.value && !usePointOnMap.value) {
+    alert('Veuillez sélectionner une option pour le point de départ.');
     return;
   }
   
@@ -284,7 +294,5 @@ function togglePointOnMap() {
   border: 2px solid #333;
   cursor: crosshair;
   background-color: #f9f9f9;
-  width: 800px;
-  height: 600px;
 }
 </style>
