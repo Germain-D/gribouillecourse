@@ -129,35 +129,31 @@ export function mockPathGeneration(
     }
   });
 
-  // Now enforce the maximum distance constraint by trimming points
-  if (maxDistance > 0) {
-    let totalDistance = 0;
-    const limitedPoints: Coordinate[] = [];
+  // Calculate the total distance of the current path
+  const totalDistance = calculatePathDistance(geoPoints);
+  
+  // If the total distance exceeds the maximum distance, scale the entire path
+  if (totalDistance > maxDistance) {
+    const scaleFactor = maxDistance / totalDistance;
     
-    // Always include the first point (user location or first drawn point)
-    limitedPoints.push(geoPoints[0]);
+    // Define the center point or anchor point for scaling
+    // If we have a user location, use that as the anchor; otherwise use the center of all points
+    const anchor = userLocation ? userLocation : {
+      lat: geoPoints.reduce((sum, pt) => sum + pt.lat, 0) / geoPoints.length,
+      lng: geoPoints.reduce((sum, pt) => sum + pt.lng, 0) / geoPoints.length
+    };
     
-    for (let i = 1; i < geoPoints.length; i++) {
-      const segmentDistance = calculateDistance(geoPoints[i-1], geoPoints[i]);
-      
-      // If adding this segment would exceed the max distance, stop here
-      if (totalDistance + segmentDistance > maxDistance) {
-        // Optionally, add a point at exactly the maximum distance
-        // This creates a more natural endpoint rather than just cutting off
-        const ratio = (maxDistance - totalDistance) / segmentDistance;
-        if (ratio > 0) {
-          const lastLat = geoPoints[i-1].lat + (geoPoints[i].lat - geoPoints[i-1].lat) * ratio;
-          const lastLng = geoPoints[i-1].lng + (geoPoints[i].lng - geoPoints[i-1].lng) * ratio;
-          limitedPoints.push({ lat: lastLat, lng: lastLng });
-        }
-        break;
-      }
-      
-      limitedPoints.push(geoPoints[i]);
-      totalDistance += segmentDistance;
+    // Scale all points towards the anchor point
+    // Skip the first point if it's the user location (we keep it fixed)
+    const startIdx = userLocation ? 1 : 0;
+    
+    for (let i = startIdx; i < geoPoints.length; i++) {
+      // Calculate scaled coordinates
+      geoPoints[i] = {
+        lat: anchor.lat + (geoPoints[i].lat - anchor.lat) * scaleFactor,
+        lng: anchor.lng + (geoPoints[i].lng - anchor.lng) * scaleFactor
+      };
     }
-    
-    return limitedPoints;
   }
   
   return geoPoints;

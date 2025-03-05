@@ -38,6 +38,29 @@
         <div v-if="locationStatus" class="text-sm mt-1" :class="{ 'text-error': locationError, 'text-success': !locationError }">
           {{ locationStatus }}
         </div>
+        
+        <!-- Nouvelle option pour la distance de départ flexible -->
+        <div v-if="useUserLocation && !locationError" class="mt-3">
+          <label class="label">
+            <span class="label-text">Distance max. autorisée du point de départ (km)</span>
+          </label>
+          <input 
+            v-model.number="maxStartDistance" 
+            type="range" 
+            min="0" 
+            max="10" 
+            class="range range-secondary" 
+            step="0.5" 
+          />
+          <div class="flex justify-between text-xs px-2 mt-1">
+            <span>0km (exact)</span>
+            <span>{{ maxStartDistance }}km</span>
+            <span>10km</span>
+          </div>
+          <div class="text-xs mt-1 text-opacity-70">
+            Permet de trouver un meilleur parcours en autorisant un point de départ jusqu'à {{ maxStartDistance }}km de votre position
+          </div>
+        </div>
       </div>
     </div>
     
@@ -65,6 +88,8 @@ const useUserLocation = ref(false);
 const userLocation = ref<{ lat: number; lng: number } | null>(null);
 const locationStatus = ref<string | null>(null);
 const locationError = ref(false);
+// Nouvelle option pour distance de départ flexible
+const maxStartDistance = ref(2); // 2km par défaut
 
 // Get user's current location
 function getCurrentLocation() {
@@ -174,6 +199,7 @@ async function generatePath() {
     // Add user location if enabled and available
     if (useUserLocation.value && userLocation.value) {
       requestBody.userLocation = userLocation.value;
+      requestBody.maxStartDistance = maxStartDistance.value;
     }
     
     const response = await fetch('/api/generate-path', {
@@ -196,7 +222,8 @@ async function generatePath() {
       pathStore.setPath({
         coordinates: data.coordinates,
         gpxContent: data.gpxContent,
-        distance: data.distance
+        distance: data.distance,
+        startPoint: data.startPoint || null
       });
       
       // Navigate to results page
