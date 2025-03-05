@@ -433,7 +433,7 @@ export async function fetchRouteFromAPI(waypoints: Coordinate[], profile: RouteP
       const route = data.features[0].geometry.coordinates;
       
       // Convert [lng, lat] format from GeoJSON to our {lat, lng} format
-      const routeCoordinates = route.map(point => ({
+      const routeCoordinates: Coordinate[] = route.map((point: [number, number]): Coordinate => ({
         lat: point[1],
         lng: point[0]
       }));

@@ -80,7 +80,9 @@
         <p class="text-xl mb-8 text-primary-content">Dessinez, générez, courez. C'est aussi simple que ça !</p>
         <div class="card w-full bg-base-100 shadow-2xl mx-auto max-w-4xl">
           <div class="card-body">
-            <DrawingCanvas />
+            <ClientOnly>
+              <DrawingCanvas />
+            </ClientOnly>
           </div>
         </div>
       </div>

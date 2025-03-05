@@ -33,7 +33,12 @@
       <div class="form-control mt-4">
         <label class="label cursor-pointer">
           <span class="label-text">Démarrer depuis ma position actuelle</span>
-          <input type="checkbox" v-model="useUserLocation" class="checkbox checkbox-primary" />
+          <input 
+            type="checkbox" 
+            :checked="useUserLocation" 
+            @change="toggleUserLocation" 
+            class="checkbox checkbox-primary" 
+          />
         </label>
         <div v-if="locationStatus" class="text-sm mt-1" :class="{ 'text-error': locationError, 'text-success': !locationError }">
           {{ locationStatus }}
@@ -62,6 +67,18 @@
           </div>
         </div>
       </div>
+
+      <div class="form-control mt-4">
+        <label class="label cursor-pointer">
+          <span class="label-text">Démarrer depuis un point sur la carte</span>
+          <input 
+            type="checkbox" 
+            :checked="usePointOnMap" 
+            @change="togglePointOnMap" 
+            class="checkbox checkbox-primary" 
+          />
+        </label>
+      </div>
     </div>
     
     <div class="buttons mt-4">
@@ -85,6 +102,7 @@ const previous = ref({ x: 0, y: 0 });
 const points = ref<{x: number, y: number}[]>([]);
 const maxDistance = ref(10); // Default 10km
 const useUserLocation = ref(false);
+const usePointOnMap = ref(false);
 const userLocation = ref<{ lat: number; lng: number } | null>(null);
 const locationStatus = ref<string | null>(null);
 const locationError = ref(false);
@@ -235,6 +253,22 @@ async function generatePath() {
     console.error('Failed to generate path:', error);
     alert('Échec de la génération du parcours. Veuillez réessayer.');
   }
+}
+
+// Ajoutez ces deux fonctions pour gérer les toggles mutuellement exclusifs
+function toggleUserLocation() {
+  useUserLocation.value = true;
+  usePointOnMap.value = false; // Désélectionner l'autre option
+  
+  // Si on active la position utilisateur et qu'elle n'est pas encore disponible
+  if (!userLocation.value) {
+    getCurrentLocation();
+  }
+}
+
+function togglePointOnMap() {
+  usePointOnMap.value = true;
+  useUserLocation.value = false; // Désélectionner l'autre option
 }
 </script>
 

@@ -24,9 +24,9 @@ const props = defineProps<{
 }>();
 
 const mapContainer = ref<HTMLElement | null>(null);
-let map = ref(null);
-let pathLayer = ref(null);
-let L = ref(null);
+let map = ref<any>(null);
+let pathLayer = ref<any>(null);
+let L = ref<any>(null);
 
 function calculateStartDistance() {
   if (!props.startPoint || !props.userLocation) return 0;
