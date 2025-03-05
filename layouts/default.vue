@@ -1,7 +1,7 @@
 <template>
   <div class="min-h-screen flex flex-col">
     <Navigation />
-    <main class="flex-grow container mx-auto p-4">
+    <main class="flex-grow  ">
       <slot></slot>
     </main>
   </div>

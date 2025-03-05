@@ -1,15 +1,12 @@
 <template>
   <nav class="flex justify-between items-center p-4 bg-gray-800 text-white">
-    <div class="text-lg font-bold">Map Drawing App</div>
+    <NuxtLink to="/" class="text-lg font-bold">
+      <i class="fas fa-route pr-1"></i>
+      GribouilleCourse</NuxtLink>
     <div>
-      <nuxt-link to="/" class="mr-4 hover:underline">Draw</nuxt-link>
-      <nuxt-link to="/results" class="hover:underline">Results</nuxt-link>
+      <NuxtLink to="/draw" class="mr-4 hover:underline">Draw</NuxtLink>
+      <NuxtLink to="/results" class="hover:underline">Results</NuxtLink>
     </div>
   </nav>
 </template>
 
-<script setup>
-</script>
-
-<style scoped>
-</style>
