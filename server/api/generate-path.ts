@@ -1,6 +1,12 @@
 import { defineEventHandler, readBody } from 'h3';
-import { mockPathGeneration, generateGpxFromCoordinates, calculatePathDistance, findOptimalStartPoint } from '../utils/gpxGenerator';
-import { fetchRouteFromAPI } from '../utils/routingService';
+import { mockPathGeneration, generateGpxFromCoordinates, calculatePathDistance } from '../utils/gpxGenerator';
+import { 
+  fetchRouteFromAPI, 
+  findOptimalStartingPoint, 
+  simulateRoadRoute,
+  detectCriticalPoints,
+  smoothRoute
+} from '../utils/routingService';
 
 export default defineEventHandler(async (event) => {
   try {
@@ -16,7 +22,7 @@ export default defineEventHandler(async (event) => {
     const drawingPoints = body.points;
     const maxDistance = body.maxDistance || 10; // Default to 10km if not specified
     const userLocation = body.userLocation; // May be undefined
-    const maxStartDistance = body.maxStartDistance || 0; // New parameter
+    const routeProfile = body.profile || 'foot'; // The type of routing (foot, bike, car)
     
     if (drawingPoints.length < 2) {
       return {
@@ -25,39 +31,51 @@ export default defineEventHandler(async (event) => {
       };
     }
 
-    // Log the received points to help debugging
     console.log(`Received ${drawingPoints.length} points for path generation with max distance: ${maxDistance}km`);
-    if (userLocation) {
-      console.log(`Using user location as starting point: [${userLocation.lat}, ${userLocation.lng}]`);
-      if (maxStartDistance > 0) {
-        console.log(`Allowing start point up to ${maxStartDistance}km from user location`);
-      }
+    console.log(`Using profile: ${routeProfile}`);
+    
+    // Find the optimal starting point for the drawing
+    const optimalStartIndex = findOptimalStartingPoint(drawingPoints, userLocation, maxDistance);
+    console.log(`Found optimal starting point at index ${optimalStartIndex}`);
+    
+    // Reorder the points so the optimal starting point is first
+    const reorderedPoints = reorderPointsFromIndex(drawingPoints, optimalStartIndex);
+    
+    // Convert drawing points to geographic waypoints
+    const waypoints = mockPathGeneration(reorderedPoints, maxDistance, userLocation);
+    
+    // Reduce waypoints but preserve critical shape points
+    const reducedWaypoints = intelligentReduceWaypoints(waypoints);
+    console.log(`Reduced waypoints from ${waypoints.length} to ${reducedWaypoints.length} for API call`);
+    
+    // Generate a route that follows actual roads using the external routing API
+    let routeCoordinates;
+    try {
+      // First, try to use the external API for real roads
+      routeCoordinates = await fetchRouteFromAPI(reducedWaypoints, routeProfile);
+      console.log(`Successfully fetched route using API with ${routeCoordinates.length} points`);
+    } catch (routeError) {
+      // Fall back to simulation if API fails
+      console.error('API route fetching failed, falling back to simulation:', routeError);
+      routeCoordinates = simulateRoadRoute(waypoints, routeProfile);
+      console.log(`Generated simulated route with ${routeCoordinates.length} points`);
     }
     
-    // 1. Find the optimal start point if flexible start is enabled
-    let startPoint = userLocation;
-    if (userLocation && maxStartDistance > 0) {
-      startPoint = findOptimalStartPoint(drawingPoints, userLocation, maxStartDistance);
-      console.log(`Found optimal start point: [${startPoint.lat}, ${startPoint.lng}], ` +
-                 `${calculateDistance(userLocation, startPoint).toFixed(2)}km from user location`);
+    // S'assurer que la distance ne dépasse pas la limite maximale
+    const currentDistance = calculatePathDistance(routeCoordinates);
+    if (currentDistance > maxDistance) {
+      console.log(`Route distance (${currentDistance.toFixed(2)}km) exceeds max (${maxDistance}km), adjusting...`);
+      routeCoordinates = trimRouteToMaxDistance(routeCoordinates, maxDistance);
     }
     
-    // 2. Convert drawing points to geographic waypoints
-    const waypoints = mockPathGeneration(drawingPoints, maxDistance, startPoint);
+    // Apply final smoothing for realism
+    routeCoordinates = await smoothRoute(routeCoordinates, routeProfile);
     
-    // 3. Reduce number of waypoints to avoid API limits
-    const reducedWaypoints = reduceWaypoints(waypoints, 10); // Max 10 waypoints
-    
-    // 4. Get actual route following roads from routing service
-    // If you don't have an API key yet, use simulateRoadRoute
-    // const routeCoordinates = await fetchRouteFromAPI(reducedWaypoints, 'foot');
-    const routeCoordinates = simulateRoadRoute(reducedWaypoints);
-    
-    // 5. Calculate the actual distance of the generated path
+    // Calculate the actual distance of the generated path
     const distance = calculatePathDistance(routeCoordinates);
     const formattedDistance = `${distance.toFixed(2)} km`;
     
-    // 6. Generate GPX file from the coordinates
+    // Generate GPX file from the coordinates
     const gpxContent = generateGpxFromCoordinates(routeCoordinates);
 
     // Return both the coordinates (for displaying on map) and GPX (for download)
@@ -66,7 +84,7 @@ export default defineEventHandler(async (event) => {
       coordinates: routeCoordinates,
       gpxContent: gpxContent,
       distance: formattedDistance,
-      startPoint: startPoint
+      startPoint: waypoints[0] // Include the start point for display
     };
   } catch (error) {
     console.error('Error generating path:', error);
@@ -78,73 +96,146 @@ export default defineEventHandler(async (event) => {
 });
 
 /**
- * Reduce the number of waypoints while preserving the shape
+ * Reorder points array to start from a specific index
  */
-function reduceWaypoints(waypoints: { lat: number; lng: number }[], maxPoints: number): { lat: number; lng: number }[] {
-  if (waypoints.length <= maxPoints) return waypoints;
+function reorderPointsFromIndex(points: any[], startIndex: number): any[] {
+  if (startIndex === 0) return [...points];
   
-  // Simple implementation: take evenly spaced points including first and last
-  const result = [waypoints[0]]; // Always include the first point
-  
-  const step = Math.max(1, Math.floor(waypoints.length / (maxPoints - 2)));
-  for (let i = step; i < waypoints.length - 1; i += step) {
-    result.push(waypoints[i]);
-    if (result.length >= maxPoints - 1) break;
-  }
-  
-  result.push(waypoints[waypoints.length - 1]); // Always include the last point
-  return result;
+  return [
+    ...points.slice(startIndex),
+    ...points.slice(0, startIndex)
+  ];
 }
 
 /**
- * For testing purposes without external API
+ * Intelligent waypoint reduction that preserves critical shape points
  */
-function simulateRoadRoute(waypoints: {lat: number, lng: number}[]): {lat: number, lng: number}[] {
-  if (waypoints.length <= 1) return waypoints;
+function intelligentReduceWaypoints(waypoints: { lat: number; lng: number }[]): { lat: number; lng: number }[] {
+  if (waypoints.length <= 10) return waypoints;
   
-  const result: {lat: number, lng: number}[] = [];
+  // Identify critical points based on curvature and shape characteristics
+  const criticalIndices = detectCriticalPoints(waypoints);
   
-  for (let i = 0; i < waypoints.length - 1; i++) {
-    const start = waypoints[i];
-    const end = waypoints[i+1];
+  // Ensure we don't exceed API limits (25 is a typical value for many routing APIs)
+  const MAX_WAYPOINTS = 25;
+  
+  // If we have fewer critical points than our limit, add more evenly distributed points
+  if (criticalIndices.length < MAX_WAYPOINTS) {
+    const remainingSlots = MAX_WAYPOINTS - criticalIndices.length;
     
-    // Add the start point
-    result.push(start);
-    
-    // Calculate distance to determine number of points to add
-    const distance = Math.sqrt(
-      Math.pow(end.lat - start.lat, 2) + Math.pow(end.lng - start.lng, 2)
-    );
-    
-    // Add intermediate points with slight randomization to simulate roads
-    const pointsToAdd = Math.ceil(distance * 100);
-    for (let j = 1; j < pointsToAdd; j++) {
-      const ratio = j / pointsToAdd;
-      
-      // Basic linear interpolation
-      const lat = start.lat + (end.lat - start.lat) * ratio;
-      const lng = start.lng + (end.lng - start.lng) * ratio;
-      
-      // Add small random deviations to simulate roads
-      const deviation = 0.0003 * Math.sin(j * 0.8); // Small sinusoidal deviation
-      
-      result.push({
-        lat: lat + deviation * (j % 2 === 0 ? 1 : -1),
-        lng: lng + deviation * (j % 3 === 0 ? 1 : -1)
-      });
+    // Add evenly spaced points that aren't already marked as critical
+    const step = Math.max(1, Math.floor(waypoints.length / remainingSlots));
+    for (let i = 0; i < waypoints.length; i += step) {
+      if (!criticalIndices.includes(i) && criticalIndices.length < MAX_WAYPOINTS) {
+        criticalIndices.push(i);
+      }
     }
+  } 
+  // If we have too many critical points, prioritize the most significant ones
+  else if (criticalIndices.length > MAX_WAYPOINTS) {
+    // Sort by significance (implementation would depend on how detectCriticalPoints works)
+    criticalIndices.sort((a, b) => {
+      const curvatureA = calculateCurvature(waypoints, a);
+      const curvatureB = calculateCurvature(waypoints, b);
+      return curvatureB - curvatureA; // Higher curvature = more important
+    });
+    
+    // Keep only the most significant points
+    criticalIndices.splice(MAX_WAYPOINTS);
   }
   
-  // Add the last waypoint
-  result.push(waypoints[waypoints.length - 1]);
+  // Always include first and last points
+  if (!criticalIndices.includes(0)) criticalIndices.push(0);
+  if (!criticalIndices.includes(waypoints.length - 1)) criticalIndices.push(waypoints.length - 1);
+  
+  // Sort indices to maintain original order
+  criticalIndices.sort((a, b) => a - b);
+  
+  // Return the waypoints at the critical indices
+  return criticalIndices.map(idx => waypoints[idx]);
+}
+
+/**
+ * Calculate curvature at a specific point
+ */
+function calculateCurvature(points: { lat: number; lng: number }[], index: number): number {
+  if (index <= 0 || index >= points.length - 1) return 0;
+  
+  const prev = points[index - 1];
+  const current = points[index];
+  const next = points[index + 1];
+  
+  // Calculate vectors
+  const v1 = {
+    lat: current.lat - prev.lat,
+    lng: current.lng - prev.lng
+  };
+  const v2 = {
+    lat: next.lat - current.lat,
+    lng: next.lng - current.lng
+  };
+  
+  // Calculate magnitudes
+  const mag1 = Math.sqrt(v1.lat * v1.lat + v1.lng * v1.lng);
+  const mag2 = Math.sqrt(v2.lat * v2.lat + v2.lng * v2.lng);
+  
+  // Calculate dot product
+  const dotProduct = v1.lat * v2.lat + v1.lng * v2.lng;
+  
+  // Calculate curvature (1 - cosθ)
+  // Ranges from 0 (straight line) to 2 (complete reversal)
+  if (mag1 === 0 || mag2 === 0) return 0;
+  return 1 - (dotProduct / (mag1 * mag2));
+}
+
+/**
+ * Trim a route to ensure it doesn't exceed the maximum distance
+ * This preserves the exact shape of the route, just shortens it
+ */
+function trimRouteToMaxDistance(
+  coordinates: { lat: number; lng: number }[], 
+  maxDistanceKm: number
+): { lat: number; lng: number }[] {
+  if (coordinates.length < 2) return coordinates;
+  
+  let totalDistance = 0;
+  const result: typeof coordinates = [coordinates[0]];
+  
+  for (let i = 1; i < coordinates.length; i++) {
+    const prev = coordinates[i-1];
+    const current = coordinates[i];
+    
+    // Calculate distance between these two points
+    const segmentDistance = calculateSegmentDistance(prev, current);
+    
+    // If adding this segment would exceed the limit
+    if (totalDistance + segmentDistance > maxDistanceKm) {
+      // Calculate how far along this segment we can go
+      const remainingDistance = maxDistanceKm - totalDistance;
+      const ratio = remainingDistance / segmentDistance;
+      
+      // Interpolate a point along the segment
+      const lastPoint = {
+        lat: prev.lat + (current.lat - prev.lat) * ratio,
+        lng: prev.lng + (current.lng - prev.lng) * ratio
+      };
+      
+      result.push(lastPoint);
+      break;
+    }
+    
+    // Otherwise add the current point and continue
+    result.push(current);
+    totalDistance += segmentDistance;
+  }
   
   return result;
 }
 
 /**
- * Calculate distance between two points
+ * Calculate distance between two coordinate points in kilometers
  */
-function calculateDistance(p1: {lat: number, lng: number}, p2: {lat: number, lng: number}): number {
+function calculateSegmentDistance(p1: { lat: number; lng: number }, p2: { lat: number; lng: number }): number {
   const R = 6371; // Earth's radius in km
   const dLat = (p2.lat - p1.lat) * Math.PI / 180;
   const dLon = (p2.lng - p1.lng) * Math.PI / 180;

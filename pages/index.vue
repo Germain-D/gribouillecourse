@@ -1,7 +1,7 @@
 <template>
   <div class="landing-page">
     <!-- Hero Section -->
-    <section class="hero bg-gradient-to-br from-primary to-primary-focus text-primary-content py-16">
+    <section class="hero bg-gradient-to-r from-primary to-secondary text-primary-content py-16">
       <div class="container mx-auto px-4">
         <div class="flex flex-col md:flex-row items-center">
           <div class="md:w-1/2 mb-10 md:mb-0">
@@ -83,9 +83,9 @@
       <div class="container mx-auto px-4">
         <h2 class="text-3xl font-bold text-center mb-12">Comment ça fonctionne</h2>
         
-        <div class="steps steps-vertical lg:steps-horizontal w-full">
-          <div class="step step-primary">
-            <div class="step-content mt-4">
+        <div class="steps steps-vertical lg:steps-horizontal w-full ">
+          <div class="step step-primary ">
+            <div class="step-content mt-4 ">
               <h3 class="text-xl font-semibold mb-2">Dessinez votre parcours</h3>
               <p class="text-base-content">Utilisez notre canvas interactif pour dessiner le parcours que vous imaginez.</p>
               <div class="mt-4 mx-auto w-full max-w-xs">
@@ -183,10 +183,10 @@
     </section>
 
     <!-- Call to Action -->
-    <section class="cta py-16 bg-primary text-primary-content" id="app-section">
+    <section class="cta py-16 bg-primary " id="app-section">
       <div class="container mx-auto px-4 text-center">
-        <h2 class="text-3xl font-bold mb-6">Prêt à créer votre parcours ?</h2>
-        <p class="text-xl mb-8">Dessinez, générez, courez. C'est aussi simple que ça !</p>
+        <h2 class="text-3xl font-bold mb-6 text-primary-content">Prêt à créer votre parcours ?</h2>
+        <p class="text-xl mb-8 text-primary-content">Dessinez, générez, courez. C'est aussi simple que ça !</p>
         <div class="card w-full bg-base-100 shadow-2xl mx-auto max-w-4xl">
           <div class="card-body">
             <DrawingCanvas />
@@ -239,12 +239,33 @@ onMounted(() => {
     link.href = 'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css';
     document.head.appendChild(link);
   }
+  
+  // Add Strava-like fonts
+  if (!document.getElementById('strava-font')) {
+    const linkFont = document.createElement('link');
+    linkFont.id = 'strava-font';
+    linkFont.rel = 'stylesheet';
+    linkFont.href = 'https://fonts.googleapis.com/css2?family=Roboto+Condensed:wght@400;700&display=swap';
+    document.head.appendChild(linkFont);
+  }
 });
 </script>
 
 <style scoped>
 .landing-page {
   font-family: 'Nunito', 'Helvetica', sans-serif;
+}
+
+h1, h2, h3, .card-title, .footer-title, .btn {
+  font-family: 'Roboto Condensed', sans-serif;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
+}
+
+.hero h1 {
+  font-size: 3.5rem;
+  letter-spacing: -1px;
 }
 
 .hero {
