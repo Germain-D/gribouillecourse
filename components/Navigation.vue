@@ -2,7 +2,7 @@
   <nav class="flex justify-between items-center p-4 bg-base-300 text-base-content">
     <NuxtLink to="/" class="text-xl font-bold strava-font flex items-center">
        <img src="/assets/img/logo-gribouillecourse-orange.png" alt="GribouilleCourse" class="w-12 h-12 mr-2" />
-      <span class="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent uppercase tracking-tight">GribouilleCourse</span>
+      <span class="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent uppercase tracking-tight hidden md:nlock lg:block">GribouilleCourse</span>
     </NuxtLink>
     <div>
       <NuxtLink to="/draw" class="btn btn-ghost normal-case mr-2">Dessiner</NuxtLink>

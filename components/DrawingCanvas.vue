@@ -1,10 +1,10 @@
 <template>
   <div class="drawing-container">
     <!-- Map display area -->
-    <div id="map-container" class="w-full h-96 mb-4"></div>
+    <div id="map-container" class="w-full h-[70vh] max-h-[35rem] min-h-80 mb-4"></div>
     
     <!-- Map drawing controls -->
-    <div class="options-container mt-4 w-full max-w-md">
+    <div class="options-container mt-4 w-full  max-w-md">
       <div class="form-control">
         <label class="label">
           <span class="label-text">Distance maximale (km)</span>
@@ -56,9 +56,46 @@
     
     <div class="buttons mt-4">
       <button class="btn btn-primary" @click="clearDrawing">Effacer</button>
-      <button class="btn btn-success ml-2" @click="generatePath" :disabled="mapPoints.length < 2">
-        Générer le parcours
+      <button class="btn btn-success ml-2" @click="generatePath" :disabled="mapPoints.length < 2 || isGenerating">
+        {{ isGenerating ? 'Génération...' : 'Générer le parcours' }}
       </button>
+    </div>
+    
+    <!-- Loading overlay -->
+    <div v-if="isGenerating" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center  z-[9999]">
+      <div class="bg-white p-6 rounded-lg shadow-xl max-w-md w-full">
+        <div class="flex items-center mb-4">
+          <div class="loading-spinner mr-3"></div>
+          <h3 class="text-lg font-bold">Génération du parcours</h3>
+        </div>
+        
+        <div class="mb-4">
+          <div class="flex justify-between mb-1">
+            <span>{{ generationStep.title }}</span>
+            <span>{{ Math.round(generationProgress) }}%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div class="bg-primary h-2 rounded-full" :style="`width: ${generationProgress}%`"></div>
+          </div>
+        </div>
+        
+        <div class="text-sm mb-3">{{ generationStep.description }}</div>
+        
+        <ul class="text-sm mb-4">
+          <li v-for="(step, index) in generationSteps" :key="index" 
+              class="flex items-start mb-2"
+              :class="{'text-gray-400': currentStepIndex < index, 'text-green-600 font-medium': currentStepIndex > index}">
+            <span v-if="currentStepIndex > index" class="mr-2">✓</span>
+            <span v-else-if="currentStepIndex === index" class="mr-2 text-blue-500">→</span>
+            <span v-else class="mr-2">•</span>
+            {{ step.title }}
+          </li>
+        </ul>
+        
+        <div class="border-t pt-4 mt-2 flex justify-end">
+          <button @click="cancelGeneration" class="btn btn-sm btn-outline">Annuler</button>
+        </div>
+      </div>
     </div>
   </div>
 </template>
@@ -340,13 +377,63 @@ function clearDrawing() {
   mapStore.clearDrawing();
 }
 
+// Generation state
+const isGenerating = ref(false);
+const generationProgress = ref(0);
+const currentStepIndex = ref(0);
+const isCancelled = ref(false);
+const generationSteps = [
+  { 
+    title: "Préparation des données", 
+    description: "Analyse et optimisation des points de dessin..." 
+  },
+  { 
+    title: "Détection des points critiques", 
+    description: "Identification des virages et éléments importants du tracé..." 
+  },
+  { 
+    title: "Génération du parcours", 
+    description: "Recherche des routes existantes correspondant à votre dessin..." 
+  },
+  { 
+    title: "Finalisation", 
+    description: "Application des ajustements finaux et création du fichier GPX..." 
+  }
+];
+
+const generationStep = computed(() => {
+  return generationSteps[currentStepIndex.value] || generationSteps[0];
+});
+
+// Function to update progress
+function updateProgress(step: number, progress: number) {
+  currentStepIndex.value = step;
+  generationProgress.value = (step * 25) + (progress * 25 / 100);
+}
+
+function cancelGeneration() {
+  isCancelled.value = true;
+  isGenerating.value = false;
+}
+
 async function generatePath() {
   if (mapPoints.value.length < 2) {
     alert('Veuillez dessiner un chemin sur la carte avant de générer le parcours.');
     return;
   }
   
+  // Reset generation state
+  isGenerating.value = true;
+  generationProgress.value = 0;
+  currentStepIndex.value = 0;
+  isCancelled.value = false;
+  
   try {
+    // Step 1: Prepare data
+    updateProgress(0, 0);
+    await simulateProgress(0, 100); // Simulate progress for step 1
+    if (isCancelled.value) return;
+
     console.log(`Sending ${mapPoints.value.length} points to generate path with max distance: ${maxDistance.value}km`);
     
     const requestBody: any = { 
@@ -359,13 +446,34 @@ async function generatePath() {
       requestBody.userLocation = userLocation.value;
     }
     
+    // Step 2: Detect critical points
+    updateProgress(1, 0);
+    await simulateProgress(1, 100);
+    if (isCancelled.value) return;
+    
+    // Step 3: Generate route - This is where the actual API call happens
+    updateProgress(2, 0);
+    
+    const controller = new AbortController();
+    const signal = controller.signal;
+    
+    // Set up cancellation
+    watch(isCancelled, (cancelled) => {
+      if (cancelled) controller.abort();
+    });
+    
     const response = await fetch('/api/generate-path', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify(requestBody)
+      body: JSON.stringify(requestBody),
+      signal
     });
+    
+    // Update progress for route generation
+    await simulateProgress(2, 100);
+    if (isCancelled.value) return;
     
     const data = await response.json();
     
@@ -373,6 +481,11 @@ async function generatePath() {
     if (response.status >= 400) {
       throw new Error(data.body?.message || 'Erreur lors de la génération du parcours');
     }
+    
+    // Step 4: Finalize
+    updateProgress(3, 0);
+    await simulateProgress(3, 100);
+    if (isCancelled.value) return;
     
     if (data.success) {
       // Store the generated path in the store
@@ -383,14 +496,37 @@ async function generatePath() {
         startPoint: data.startPoint || null
       });
       
+      // Hide loading screen
+      isGenerating.value = false;
+      
       // Navigate to results page
       router.push('/results');
     } else {
       throw new Error(data.body?.message || 'Erreur lors de la génération du parcours');
     }
   } catch (error) {
+    if (isCancelled.value) {
+      console.log('Path generation cancelled');
+      return;
+    }
+    
     console.error('Failed to generate path:', error);
     alert('Échec de la génération du parcours. Veuillez réessayer.');
+    isGenerating.value = false;
+  }
+}
+
+// Helper function to simulate progress (for demo purposes)
+async function simulateProgress(step: number, targetProgress: number) {
+  let currentProgress = 0;
+  const increment = 5;
+  const delay = 50;
+  
+  while (currentProgress < targetProgress && !isCancelled.value) {
+    currentProgress += increment;
+    if (currentProgress > targetProgress) currentProgress = targetProgress;
+    updateProgress(step, currentProgress);
+    await new Promise(resolve => setTimeout(resolve, delay));
   }
 }
 
@@ -425,7 +561,7 @@ onMounted(() => {
 
 #map-container {
   width: 100%;
-  height: 400px;
+  
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
@@ -455,5 +591,19 @@ onMounted(() => {
   text-align: center;
   line-height: 20px;
   font-size: 12px;
+}
+
+.loading-spinner {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-radius: 50%;
+  border-top-color: #FC4C02;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 </style>

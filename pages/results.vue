@@ -22,21 +22,30 @@
         <button class="btn btn-success" @click="downloadGpx">Télécharger GPX</button>
       </div>
     </div>
+    <button class="btn btn-neutral mt-4" @click="router.push('/howusegpx')">Comment utiliser le fichier GPX ?</button>
   </div>
 </template>
 
 <script setup lang="ts">
 import { usePathStore } from '@/stores/path';
+import { useMapStore } from '@/stores/map';
 import { useRouter } from 'vue-router';
 import { computed } from 'vue';
 import MapDisplay from '@/components/MapDisplay.vue';
 
 const pathStore = usePathStore();
+const mapStore = useMapStore();
 const router = useRouter();
+
 
 const hasPath = computed(() => {
   return pathStore.coordinates.length > 0 && !!pathStore.gpxContent;
 });
+
+// si un parcours a été généré, on clear le dessin
+if (hasPath.value) {
+  mapStore.clearDrawing();
+}
 
 function downloadGpx() {
   if (!pathStore.gpxContent) return;

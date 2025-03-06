@@ -1,15 +1,17 @@
 <template>
         <!-- Footer -->
         <footer class="footer p-10 bg-accent text-accent-content">
-      <div>
+      <NuxtLink to="/">
+        <img src="/assets/img/logo-gribouillecourse-orange.png" alt="GribouilleCourse" class="w-12 h-12 mb-4" />
         <span class="footer-title text-xl">GribouilleCourse</span>
         <p>© 2024 GribouilleCourse. Tous droits réservés.</p>
-      </div> 
+      </NuxtLink> 
       <div>
         <span class="footer-title">Liens</span> 
-        <a class="link link-hover">À propos</a> 
-        <a class="link link-hover">Confidentialité</a> 
-        <a class="link link-hover">Contact</a>
+        <NuxtLink><a class="link link-hover">À propos</a></NuxtLink>
+        <NuxtLink to="/draw"><a class="link link-hover">Dessiner</a> </NuxtLink>
+          <NuxtLink to="/results"><a class="link link-hover">Résultats</a></NuxtLink>
+          <NuxtLink to="/howusegpx"><a class="link link-hover">Utiliser le fichier GPX</a></NuxtLink>
       </div> 
       <div>
         <span class="footer-title">Social</span> 
