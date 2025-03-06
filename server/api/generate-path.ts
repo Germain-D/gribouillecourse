@@ -1,8 +1,7 @@
 import { defineEventHandler, readBody } from 'h3';
-import { mockPathGeneration, generateGpxFromCoordinates, calculatePathDistance } from '../utils/gpxGenerator';
+import { generateGpxFromCoordinates, calculatePathDistance } from '../utils/gpxGenerator';
 import { 
   fetchRouteFromAPI, 
-  findOptimalStartingPoint, 
   simulateRoadRoute,
   detectCriticalPoints,
   smoothRoute
@@ -23,7 +22,6 @@ export default defineEventHandler(async (event) => {
     const maxDistance = body.maxDistance || 10; // Default to 10km if not specified
     const userLocation = body.userLocation; // May be undefined
     const routeProfile = body.profile || 'foot'; // The type of routing (foot, bike, car)
-    const maxStartDistance = body.maxStartDistance || 0.5; // Default to 0.5km
     
     if (drawingPoints.length < 2) {
       return {
@@ -35,19 +33,12 @@ export default defineEventHandler(async (event) => {
     console.log(`Received ${drawingPoints.length} points for path generation with max distance: ${maxDistance}km`);
     console.log(`Using profile: ${routeProfile}`);
     
-    // Find the optimal starting point for the drawing
-    const optimalStartIndex = findOptimalStartingPoint(drawingPoints, userLocation, maxDistance);
-    console.log(`Found optimal starting point at index ${optimalStartIndex}`);
-    
-    // Reorder the points so the optimal starting point is first
-    const reorderedPoints = reorderPointsFromIndex(drawingPoints, optimalStartIndex);
-    
-    // Convert drawing points to geographic waypoints
-    const waypoints = mockPathGeneration(reorderedPoints, maxDistance, userLocation);
+    // The points are already geographic coordinates (lat/lng) from the map
+    // No need to find optimal starting point or transform canvas points
     
     // Reduce waypoints but preserve critical shape points
-    const reducedWaypoints = intelligentReduceWaypoints(waypoints);
-    console.log(`Reduced waypoints from ${waypoints.length} to ${reducedWaypoints.length} for API call`);
+    const reducedWaypoints = intelligentReduceWaypoints(drawingPoints);
+    console.log(`Reduced waypoints from ${drawingPoints.length} to ${reducedWaypoints.length} for API call`);
     
     // Generate a route that follows actual roads using the external routing API
     let routeCoordinates;
@@ -58,11 +49,11 @@ export default defineEventHandler(async (event) => {
     } catch (routeError) {
       // Fall back to simulation if API fails
       console.error('API route fetching failed, falling back to simulation:', routeError);
-      routeCoordinates = simulateRoadRoute(waypoints, routeProfile);
+      routeCoordinates = simulateRoadRoute(drawingPoints, routeProfile);
       console.log(`Generated simulated route with ${routeCoordinates.length} points`);
     }
     
-    // S'assurer que la distance ne dépasse pas la limite maximale
+    // Ensure the distance doesn't exceed the max limit
     const currentDistance = calculatePathDistance(routeCoordinates);
     if (currentDistance > maxDistance) {
       console.log(`Route distance (${currentDistance.toFixed(2)}km) exceeds max (${maxDistance}km), adjusting...`);
@@ -85,7 +76,7 @@ export default defineEventHandler(async (event) => {
       coordinates: routeCoordinates,
       gpxContent: gpxContent,
       distance: formattedDistance,
-      startPoint: waypoints[0] // Include the start point for display
+      startPoint: drawingPoints[0] // The first drawing point is our start point
     };
   } catch (error) {
     console.error('Error generating path:', error);
@@ -95,18 +86,6 @@ export default defineEventHandler(async (event) => {
     };
   }
 });
-
-/**
- * Reorder points array to start from a specific index
- */
-function reorderPointsFromIndex(points: any[], startIndex: number): any[] {
-  if (startIndex === 0) return [...points];
-  
-  return [
-    ...points.slice(startIndex),
-    ...points.slice(0, startIndex)
-  ];
-}
 
 /**
  * Intelligent waypoint reduction that preserves critical shape points

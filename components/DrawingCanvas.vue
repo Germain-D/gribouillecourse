@@ -1,15 +1,9 @@
 <template>
   <div class="drawing-container">
-    <canvas
-      ref="canvas"
-      @mousedown="handleMouseDown"
-      @mousemove="handleMouseMove"
-      @mouseup="handleMouseUp"
-      @mouseleave="handleMouseUp"
-      class="drawing-canvas w-full h-96"
-    ></canvas>
+    <!-- Map display area -->
+    <div id="map-container" class="w-full h-96 mb-4"></div>
     
-    <!-- Options de génération de parcours -->
+    <!-- Map drawing controls -->
     <div class="options-container mt-4 w-full max-w-md">
       <div class="form-control">
         <label class="label">
@@ -32,58 +26,37 @@
       
       <div class="form-control mt-4">
         <label class="label cursor-pointer">
-          <span class="label-text">Démarrer depuis ma position actuelle</span>
+          <span class="label-text">Centrer la carte sur ma position</span>
           <input 
             type="checkbox" 
-            :checked="useUserLocation" 
-            @change="toggleUserLocation" 
+            v-model="useUserLocation"
+            @change="centerOnUserLocation" 
             class="checkbox checkbox-primary" 
           />
         </label>
         <div v-if="locationStatus" class="text-sm mt-1" :class="{ 'text-error': locationError, 'text-success': !locationError }">
           {{ locationStatus }}
         </div>
-        
-        <!-- Nouvelle option pour la distance de départ flexible -->
-        <div v-if="useUserLocation && !locationError" class="mt-3">
-          <label class="label">
-            <span class="label-text">Distance max. autorisée du point de départ (km)</span>
-          </label>
-          <input 
-            v-model.number="maxStartDistance" 
-            type="range" 
-            min="0" 
-            max="10" 
-            class="range range-secondary" 
-            step="0.5" 
-          />
-          <div class="flex justify-between text-xs px-2 mt-1">
-            <span>0km (exact)</span>
-            <span>{{ maxStartDistance }}km</span>
-            <span>10km</span>
-          </div>
-          <div class="text-xs mt-1 text-opacity-70">
-            Permet de trouver un meilleur parcours en autorisant un point de départ jusqu'à {{ maxStartDistance }}km de votre position
-          </div>
-        </div>
       </div>
 
       <div class="form-control mt-4">
         <label class="label cursor-pointer">
-          <span class="label-text">Démarrer depuis un point sur la carte</span>
+          <span class="label-text">Activer le mode dessin à main levée</span>
           <input 
             type="checkbox" 
-            :checked="usePointOnMap" 
-            @change="togglePointOnMap" 
+            v-model="drawingModeActive"
             class="checkbox checkbox-primary" 
           />
         </label>
+        <div v-if="mapStore.isDrawingMode" class="text-sm mt-1 text-success">
+          Mode dessin actif. Cliquez et faites glisser sur la carte pour dessiner.
+        </div>
       </div>
     </div>
     
     <div class="buttons mt-4">
-      <button class="btn btn-primary" @click="clearCanvas">Effacer</button>
-      <button class="btn btn-success ml-2" @click="generatePath" :disabled="points.length < 2 || (!useUserLocation && !usePointOnMap)">
+      <button class="btn btn-primary" @click="clearDrawing">Effacer</button>
+      <button class="btn btn-success ml-2" @click="generatePath" :disabled="mapPoints.length < 2">
         Générer le parcours
       </button>
     </div>
@@ -91,25 +64,224 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { usePathStore } from '@/stores/path';
+import { useMapStore } from '@/stores/map';
+// Import Leaflet
+import 'leaflet/dist/leaflet.css';
+import L from 'leaflet';
 
 const router = useRouter();
 const pathStore = usePathStore();
-const canvas = ref<HTMLCanvasElement | null>(null);
-const context = ref<CanvasRenderingContext2D | null>(null);
-const isDrawing = ref(false);
-const previous = ref({ x: 0, y: 0 });
-const points = ref<{x: number, y: number}[]>([]);
+const mapStore = useMapStore();
+
 const maxDistance = ref(10); // Default 10km
 const useUserLocation = ref(false);
-const usePointOnMap = ref(false);
+const drawingModeActive = computed({
+  get: () => mapStore.isDrawingMode,
+  set: (value) => {
+    if (value) mapStore.startDrawing();
+    else mapStore.stopDrawing();
+  }
+});
 const userLocation = ref<{ lat: number; lng: number } | null>(null);
 const locationStatus = ref<string | null>(null);
 const locationError = ref(false);
-// Nouvelle option pour distance de départ flexible
-const maxStartDistance = ref(2); // 2km par défaut
+const mapPoints = ref<{lat: number, lng: number}[]>([]);
+const isDrawing = ref(false);
+const samplingRate = 20; // Milliseconds between point samples
+let lastSampleTime = 0;
+
+// Leaflet map instance
+let map: L.Map | null = null;
+let polyline: L.Polyline | null = null;
+let markers: L.Marker[] = [];
+
+// Initialize the map
+function initMap() {
+  if (map) return; // Map already initialized
+  
+  // Create the map
+  map = L.map('map-container', {
+    dragging: true,  // Keep default map dragging behavior
+  }).setView([mapStore.mapCenter.lat, mapStore.mapCenter.lng], mapStore.zoom);
+  
+  // Add tile layer (OpenStreetMap)
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+  }).addTo(map);
+  
+  // Initialize polyline for drawing
+  polyline = L.polyline([], { color: 'blue', weight: 3 }).addTo(map);
+  
+  // Setup freehand drawing handlers
+  setupFreehandDrawing();
+  
+  // Center map based on mapStore
+  map.setView([mapStore.mapCenter.lat, mapStore.mapCenter.lng], mapStore.zoom);
+}
+
+// Setup events for freehand drawing
+function setupFreehandDrawing() {
+  if (!map) return;
+  
+  // Remove old handlers if any
+  map.off('mousedown');
+  map.off('mousemove');
+  map.off('mouseup');
+  map.off('mouseout');
+  
+  // Add freehand drawing handlers
+  map.on('mousedown', startDrawing);
+  map.on('mousemove', drawIfActive);
+  map.on('mouseup', stopDrawing);
+  map.on('mouseout', stopDrawing);
+  
+  // For touch devices
+  map.getContainer().addEventListener('touchstart', handleTouchStart, { passive: false });
+  map.getContainer().addEventListener('touchmove', handleTouchMove, { passive: false });
+  map.getContainer().addEventListener('touchend', handleTouchEnd, { passive: true });
+}
+
+// Handle touch events
+function handleTouchStart(e: TouchEvent) {
+  if (!mapStore.isDrawingMode) return;
+  
+  e.preventDefault();
+  const touch = e.touches[0];
+  const container = map!.getContainer();
+  const point = L.point(
+    touch.clientX - container.getBoundingClientRect().left,
+    touch.clientY - container.getBoundingClientRect().top
+  );
+  const latlng = map!.containerPointToLatLng(point);
+  
+  startDrawing({ latlng } as L.LeafletMouseEvent);
+}
+
+function handleTouchMove(e: TouchEvent) {
+  if (!isDrawing.value || !mapStore.isDrawingMode) return;
+  
+  e.preventDefault();
+  const touch = e.touches[0];
+  const container = map!.getContainer();
+  const point = L.point(
+    touch.clientX - container.getBoundingClientRect().left,
+    touch.clientY - container.getBoundingClientRect().top
+  );
+  const latlng = map!.containerPointToLatLng(point);
+  
+  drawIfActive({ latlng } as L.LeafletMouseEvent);
+}
+
+function handleTouchEnd() {
+  stopDrawing();
+}
+
+// Start drawing when mouse is pressed
+function startDrawing(e: L.LeafletMouseEvent) {
+  if (!mapStore.isDrawingMode) return;
+  
+  isDrawing.value = true;
+  
+  // Add first point
+  const point = { lat: e.latlng.lat, lng: e.latlng.lng };
+  mapStore.addPoint(point);
+  lastSampleTime = Date.now();
+  
+  // Disable map dragging while drawing
+  map!.dragging.disable();
+}
+
+// Add points as the mouse moves (throttled)
+function drawIfActive(e: L.LeafletMouseEvent) {
+  if (!isDrawing.value || !mapStore.isDrawingMode) return;
+  
+  const now = Date.now();
+  if (now - lastSampleTime >= samplingRate) {
+    const point = { lat: e.latlng.lat, lng: e.latlng.lng };
+    
+    // Optional: Check minimum distance to avoid super-dense points
+    const lastPoint = mapStore.drawingPoints[mapStore.drawingPoints.length - 1];
+    if (lastPoint) {
+      const distMeters = calculateDistanceInMeters(lastPoint, point);
+      if (distMeters < 5) return; // Skip points that are too close (under 5 meters)
+    }
+    
+    mapStore.addPoint(point);
+    lastSampleTime = now;
+  }
+}
+
+// Helper function to calculate distance between points in meters
+function calculateDistanceInMeters(p1: {lat: number, lng: number}, p2: {lat: number, lng: number}) {
+  const R = 6371e3; // Earth's radius in meters
+  const φ1 = p1.lat * Math.PI/180;
+  const φ2 = p2.lat * Math.PI/180;
+  const Δφ = (p2.lat - p1.lat) * Math.PI/180;
+  const Δλ = (p2.lng - p1.lng) * Math.PI/180;
+
+  const a = Math.sin(Δφ/2) * Math.sin(Δφ/2) +
+          Math.cos(φ1) * Math.cos(φ2) *
+          Math.sin(Δλ/2) * Math.sin(Δλ/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+// Stop drawing when mouse is released
+function stopDrawing() {
+  if (isDrawing.value) {
+    isDrawing.value = false;
+    
+    // Re-enable map dragging
+    if (map) {
+      map.dragging.enable();
+    }
+  }
+}
+
+// Update map display when points change
+function updateMapDisplay(points: {lat: number, lng: number}[]) {
+  if (!map) return;
+  
+  // Update polyline
+  if (polyline) {
+    polyline.setLatLngs(points.map(p => [p.lat, p.lng]));
+  }
+  
+  // Clear existing markers
+  markers.forEach(marker => map?.removeLayer(marker));
+  markers = [];
+  
+  // Add markers for start and end points only
+  if (points.length > 0) {
+    // Start point
+    const startMarker = L.marker([points[0].lat, points[0].lng], {
+      icon: L.divIcon({
+        className: 'start-point-icon',
+        html: `<div>S</div>`,
+        iconSize: [20, 20]
+      })
+    }).addTo(map!);
+    markers.push(startMarker);
+    
+    // End point if different
+    if (points.length > 1) {
+      const endMarker = L.marker([points[points.length-1].lat, points[points.length-1].lng], {
+        icon: L.divIcon({
+          className: 'end-point-icon',
+          html: `<div>E</div>`,
+          iconSize: [20, 20]
+        })
+      }).addTo(map!);
+      markers.push(endMarker);
+    }
+  }
+  
+  // Update local reference
+  mapPoints.value = points;
+}
 
 // Get user's current location
 function getCurrentLocation() {
@@ -130,6 +302,12 @@ function getCurrentLocation() {
       };
       locationStatus.value = "Position trouvée";
       locationError.value = false;
+      
+      // If enabled, center the map on the user's location
+      if (useUserLocation.value && map) {
+        mapStore.centerMap(userLocation.value);
+        map.setView([userLocation.value.lat, userLocation.value.lng], 15);
+      }
     },
     (error) => {
       console.error("Erreur de géolocalisation:", error);
@@ -140,94 +318,45 @@ function getCurrentLocation() {
   );
 }
 
-// Watch for changes to useUserLocation
-watch(useUserLocation, (newValue) => {
-  if (newValue && !userLocation.value) {
-    getCurrentLocation();
-  }
-});
-
-onMounted(() => {
-  if (canvas.value) {    
-
-    // Set up the canvas size
-    canvas.value.width = canvas.value.clientWidth;
-    canvas.value.height = canvas.value.clientHeight;
-
-    context.value = canvas.value.getContext('2d');
-    
-    if (context.value) {
-      context.value.lineWidth = 5;
-      context.value.lineCap = 'round';
-      context.value.strokeStyle = 'black';
+// Center map on user location when enabled
+function centerOnUserLocation() {
+  if (useUserLocation.value) {
+    if (userLocation.value && map) {
+      // If we already have the location, center map immediately
+      mapStore.centerMap(userLocation.value);
+      map.setView([userLocation.value.lat, userLocation.value.lng], 15);
+    } else {
+      // Otherwise fetch location first
+      getCurrentLocation();
     }
   }
-});
-
-function handleMouseDown(event: MouseEvent) {
-  isDrawing.value = true;
-  const rect = canvas.value?.getBoundingClientRect();
-  if (rect) {
-    const x = event.clientX - rect.left;
-    const y = event.clientY - rect.top;
-    previous.value = { x, y };
-    points.value.push({ x, y });
-  }
 }
 
-function handleMouseMove(event: MouseEvent) {
-  if (!isDrawing.value || !context.value || !canvas.value) return;
-  
-  const rect = canvas.value.getBoundingClientRect();
-  const x = event.clientX - rect.left;
-  const y = event.clientY - rect.top;
-  
-  context.value.beginPath();
-  context.value.moveTo(previous.value.x, previous.value.y);
-  context.value.lineTo(x, y);
-  context.value.stroke();
-  
-  // Save the point for path generation
-  points.value.push({ x, y });
-  
-  previous.value = { x, y };
+function toggleDrawingMode() {
+  mapStore.toggleDrawingMode();
 }
 
-function handleMouseUp() {
-  isDrawing.value = false;
-}
-
-function clearCanvas() {
-  if (context.value && canvas.value) {
-    context.value.clearRect(0, 0, canvas.value.width, canvas.value.height);
-    points.value = [];
-  }
+function clearDrawing() {
+  mapStore.clearDrawing();
 }
 
 async function generatePath() {
-  if (points.value.length < 2) {
-    alert('Veuillez dessiner un chemin avant de générer le parcours.');
-    return;
-  }
-
-  // si aucune option n'est sélectionnée
-  if (!useUserLocation.value && !usePointOnMap.value) {
-    alert('Veuillez sélectionner une option pour le point de départ.');
+  if (mapPoints.value.length < 2) {
+    alert('Veuillez dessiner un chemin sur la carte avant de générer le parcours.');
     return;
   }
   
   try {
-    console.log(`Sending ${points.value.length} points to generate path with max distance: ${maxDistance.value}km`);
+    console.log(`Sending ${mapPoints.value.length} points to generate path with max distance: ${maxDistance.value}km`);
     
     const requestBody: any = { 
-      points: points.value,
+      points: mapPoints.value,
       maxDistance: maxDistance.value 
     };
     
-    // Add user location if enabled and available
-    if (useUserLocation.value && userLocation.value) {
+    // Add user location if available for context
+    if (userLocation.value) {
       requestBody.userLocation = userLocation.value;
-      requestBody.maxStartDistance = maxStartDistance.value;
     }
     
     const response = await fetch('/api/generate-path', {
@@ -265,21 +394,24 @@ async function generatePath() {
   }
 }
 
-// Ajoutez ces deux fonctions pour gérer les toggles mutuellement exclusifs
-function toggleUserLocation() {
-  useUserLocation.value = true;
-  usePointOnMap.value = false; // Désélectionner l'autre option
+// Initialize map and subscribe to drawing events
+onMounted(() => {
+  // Initialize the map
+  initMap();
   
-  // Si on active la position utilisateur et qu'elle n'est pas encore disponible
-  if (!userLocation.value) {
-    getCurrentLocation();
-  }
-}
-
-function togglePointOnMap() {
-  usePointOnMap.value = true;
-  useUserLocation.value = false; // Désélectionner l'autre option
-}
+  // Subscribe to map store changes
+  mapStore.subscribeToDrawingEvents(updateMapDisplay);
+  
+  // Listen to center changes
+  watch(() => mapStore.mapCenter, (newCenter) => {
+    if (map) {
+      map.setView([newCenter.lat, newCenter.lng], map.getZoom());
+    }
+  });
+  
+  // Get user location on mount
+  getCurrentLocation();
+});
 </script>
 
 <style scoped>
@@ -287,12 +419,41 @@ function togglePointOnMap() {
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 100%;
   padding: 20px;
 }
 
-.drawing-canvas {
-  border: 2px solid #333;
-  cursor: crosshair;
-  background-color: #f9f9f9;
+#map-container {
+  width: 100%;
+  height: 400px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+:deep(.start-point-icon) {
+  background-color: green;
+  color: white;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 20px;
+  font-weight: bold;
+}
+
+:deep(.end-point-icon) {
+  background-color: red;
+  color: white;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 20px;
+  font-weight: bold;
+}
+
+:deep(.drawing-point-icon) {
+  background-color: blue;
+  color: white;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 20px;
+  font-size: 12px;
 }
 </style>

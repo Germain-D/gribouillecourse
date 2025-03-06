@@ -22,6 +22,13 @@ type RouteProfile = 'foot' | 'bike' | 'car';
 const CANVAS_WIDTH = 800;
 const CANVAS_HEIGHT = 600;
 
+// Ajout des constantes de configuration par profil de route
+const PROFILE_SETTINGS = {
+  foot: { max_points: 30, smoothing: 3, step_size: 20 },  // Pas plus petits pour les piétons
+  bike: { max_points: 40, smoothing: 2, step_size: 40 },  // Pas intermédiaires pour les vélos
+  car: { max_points: 50, smoothing: 1, step_size: 100 }   // Pas plus grands pour les voitures
+};
+
 /**
  * Find the most optimal starting point for a route based on the drawing
  * This function analyzes the drawing and determines which point would give
@@ -391,33 +398,39 @@ export function reduceWaypoints(waypoints: Coordinate[], maxApiPoints: number = 
  */
 export async function fetchRouteFromAPI(waypoints: Coordinate[], profile: RouteProfile = 'foot'): Promise<Coordinate[]> {
   try {
-    // Réduire intelligemment le nombre de waypoints pour l'API
-    const optimizedWaypoints = reduceWaypoints(waypoints, 25);
-    console.log(`Reduced ${waypoints.length} waypoints to ${optimizedWaypoints.length} for API call`);
+    // Essayer d'abord de snapper les points aux routes réelles
+    const snappedPoints = await snapToRoads(waypoints, profile);
+    console.log(`Snapped ${waypoints.length} waypoints to roads`);
     
-    // Convert waypoints to the format expected by OpenRouteService
+    // Réduire intelligemment le nombre de waypoints selon le profil
+    const maxApiPoints = PROFILE_SETTINGS[profile].max_points;
+    const optimizedWaypoints = reduceWaypoints(snappedPoints, maxApiPoints);
+    console.log(`Reduced ${snappedPoints.length} waypoints to ${optimizedWaypoints.length} for API call`);
+    
+    // Convertir les waypoints au format attendu par l'API
     const coordinates = optimizedWaypoints.map(point => [point.lng, point.lat]);
     
-    // Map profile to OpenRouteService profile
+    // Définir le profile API
     const apiProfile = profile === 'foot' ? 'foot-walking' : 
                        profile === 'bike' ? 'cycling-regular' : 
                        'driving-car';
     
-    // Create the request body
+    // Créer le corps de la requête
     const body = {
       coordinates,
       format: 'geojson',
       preference: 'recommended',
-      units: 'km'
+      units: 'km',
+      instructions: false
     };
     
-    // Make request to OpenRouteService API
+    // Appel à l'API OpenRouteService
     const response = await fetch(`https://api.openrouteservice.org/v2/directions/${apiProfile}/geojson`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': process.env.ORS_API_KEY || '',  // You'll need to create an API key
-        'Accept': 'application/json, application/geo+json, application/gpx+xml'
+        'Authorization': process.env.ORS_API_KEY || '',
+        'Accept': 'application/json, application/geo+json'
       },
       body: JSON.stringify(body)
     });
@@ -428,27 +441,27 @@ export async function fetchRouteFromAPI(waypoints: Coordinate[], profile: RouteP
     
     const data = await response.json();
     
-    // Extract coordinates from GeoJSON response
+    // Extraire les coordonnées de la réponse GeoJSON
     if (data.features && data.features.length > 0 && data.features[0].geometry) {
       const route = data.features[0].geometry.coordinates;
       
-      // Convert [lng, lat] format from GeoJSON to our {lat, lng} format
+      // Convertir du format GeoJSON [lng, lat] à notre format {lat, lng}
       const routeCoordinates: Coordinate[] = route.map((point: [number, number]): Coordinate => ({
         lat: point[1],
         lng: point[0]
       }));
       
-      // Appliquer le post-traitement pour plus de réalisme
-      return routeCoordinates;
+      // Aligner la route obtenue avec les points originaux pour plus de précision
+      return alignRouteToOriginal(routeCoordinates, waypoints);
     } else {
       throw new Error('No route found in the API response');
     }
   } catch (error) {
     console.error('Error fetching route:', error);
     
-    // If API call fails, fall back to a simplified method by connecting the points directly
+    // Si l'appel API échoue, revenir à la méthode simplifiée
     console.log('Falling back to direct point-to-point routing');
-    return waypoints;
+    return simulateRoadRoute(waypoints, profile);
   }
 }
 
@@ -460,39 +473,49 @@ export function simulateRoadRoute(waypoints: Coordinate[], profile: RouteProfile
   if (waypoints.length <= 1) return waypoints;
   
   const result: Coordinate[] = [];
+  const stepSize = PROFILE_SETTINGS[profile].step_size;
+  
+  // Déterminer la distance moyenne entre les segments pour calculer l'échelle des variations
+  let totalDistance = 0;
+  for (let i = 0; i < waypoints.length - 1; i++) {
+    totalDistance += calculateGeoDistance(waypoints[i], waypoints[i+1]);
+  }
+  const avgSegmentLength = totalDistance / (waypoints.length - 1);
+  const variationScale = Math.min(0.0005, avgSegmentLength * 0.05); // Max 5% de la longueur moyenne
+  
+  // Ajouter le premier point
+  result.push(waypoints[0]);
   
   for (let i = 0; i < waypoints.length - 1; i++) {
     const start = waypoints[i];
     const end = waypoints[i+1];
     
-    // Add the start point
-    result.push(start);
+    // Calcul de la distance entre ces deux points
+    const segmentDistance = calculateGeoDistance(start, end);
     
-    // Calculate distance to determine number of points to add
-    const distance = Math.sqrt(
-      Math.pow(end.lat - start.lat, 2) + Math.pow(end.lng - start.lng, 2)
-    );
+    // Determiner le nombre de points intermédiaires selon la distance et le profil
+    const pointsToAdd = Math.max(1, Math.ceil(segmentDistance * 1000 / stepSize));
     
-    // Add intermediate points with slight randomization to simulate roads
-    const pointsToAdd = Math.ceil(distance * 100);
-    for (let j = 1; j < pointsToAdd; j++) {
-      const ratio = j / pointsToAdd;
+    // Ajouter des points intermédiaires avec des variations adaptées au profil
+    for (let j = 1; j <= pointsToAdd; j++) {
+      const ratio = j / (pointsToAdd + 1);
       
-      // Basic linear interpolation
-      const lat = start.lat + (end.lat - start.lat) * ratio;
-      const lng = start.lng + (end.lng - start.lng) * ratio;
+      // Positionnement de base par interpolation linéaire
+      let lat = start.lat + (end.lat - start.lat) * ratio;
+      let lng = start.lng + (end.lng - start.lng) * ratio;
       
-      // Add small random deviations to simulate roads
-      const deviation = 0.0003 * Math.sin(j * 0.8); // Small sinusoidal deviation
+      // Variations selon le profil
+      const variation = getProfileVariation(ratio, profile, variationScale, i * 1000 + j);
       
-      result.push({
-        lat: lat + deviation * (j % 2 === 0 ? 1 : -1),
-        lng: lng + deviation * (j % 3 === 0 ? 1 : -1)
-      });
+      // Application des variations
+      lat += variation.lat;
+      lng += variation.lng;
+      
+      result.push({lat, lng});
     }
   }
   
-  // Add the last waypoint
+  // Ajouter le dernier point
   result.push(waypoints[waypoints.length - 1]);
   
   // Appliquer le lissage pour un parcours plus réaliste selon le profil
@@ -528,54 +551,68 @@ export function detectCriticalPoints(waypoints: Coordinate[]): number[] {
 }
 
 /**
- * Calculate curvature at a specific point (0 for straight line, up to 2 for sharp turn)
+ * Calculate curvature at a specific point
+ * Version améliorée avec fenêtre glissante
  */
 function calculateCurvature(points: Coordinate[], index: number): number {
   if (index <= 0 || index >= points.length - 1) return 0;
   
-  const prev = points[index - 1];
-  const current = points[index];
-  const next = points[index + 1];
+  // Ajout d'une fenêtre glissante pour une détection plus stable
+  const windowSize = Math.min(2, Math.floor(points.length / 10));
+  let sumCurvature = 0;
+  let count = 0;
   
-  // Calculate vectors
-  const v1 = {
-    lat: current.lat - prev.lat,
-    lng: current.lng - prev.lng
-  };
-  const v2 = {
-    lat: next.lat - current.lat,
-    lng: next.lng - current.lng
-  };
+  for (let i = -windowSize; i <= windowSize; i++) {
+    const effectiveIndex = Math.max(1, Math.min(points.length - 2, index + i));
+    
+    const prev = points[effectiveIndex - 1];
+    const current = points[effectiveIndex];
+    const next = points[effectiveIndex + 1];
+    
+    if (!prev || !next) continue;
+    
+    // Calcul de l'aire du triangle formé par les trois points
+    const area = Math.abs(
+      (prev.lng - current.lng) * (next.lat - current.lat) - 
+      (prev.lat - current.lat) * (next.lng - current.lng)
+    ) / 2;
+    
+    // Calcul des distances entre les points
+    const a = calculateGeoDistance(prev, current);
+    const b = calculateGeoDistance(current, next);
+    const c = calculateGeoDistance(prev, next);
+    
+    // Si l'un des segments est trop petit, ignorez ce point
+    if (a < 0.0001 || b < 0.0001) continue;
+    
+    // Calcul de courbure: plus l'aire est grande par rapport aux côtés, plus la courbure est forte
+    let curvature = 4 * area / (a * b);
+    
+    // Cas particulier pour éviter les valeurs invalides
+    if (isNaN(curvature)) curvature = 0;
+    
+    sumCurvature += curvature;
+    count++;
+  }
   
-  // Calculate magnitudes
-  const mag1 = Math.sqrt(v1.lat * v1.lat + v1.lng * v1.lng);
-  const mag2 = Math.sqrt(v2.lat * v2.lat + v2.lng * v2.lng);
-  
-  // Calculate dot product
-  const dotProduct = v1.lat * v2.lat + v1.lng * v2.lng;
-  
-  // Calculate curvature (1 - cosθ)
-  // Ranges from 0 (straight line) to 2 (complete reversal)
-  if (mag1 === 0 || mag2 === 0) return 0;
-  return 1 - (dotProduct / (mag1 * mag2));
+  return count > 0 ? sumCurvature / count : 0;
 }
 
 /**
  * Apply smoothing to the route to make it more realistic
- * Asynchronous function signature but no actual async operations
  */
 export function smoothRoute(route: Coordinate[], profile: RouteProfile): Coordinate[] {
-  // Different smoothing strategies based on transport mode
-  const iterations = profile === 'car' ? 1 : profile === 'bike' ? 2 : 3;
+  // Appliquer un lissage spécifique au profil
+  const iterations = PROFILE_SETTINGS[profile].smoothing;
   
   let result = [...route];
   
-  // Apply Chaikin smoothing
+  // Appliquer le lissage progressivement
   for (let i = 0; i < iterations; i++) {
     result = chaikinSmooth(result);
   }
   
-  // For foot paths, add small natural deviations
+  // Pour les chemins à pied, ajouter des déviations naturelles
   if (profile === 'foot') {
     result = addNaturalDeviation(result);
   }
@@ -682,4 +719,153 @@ export function getAnnotatedCriticalPoints(waypoints: Coordinate[]): AnnotatedCo
   }
   
   return criticalPoints;
+}
+
+/**
+ * Snap points to actual roads using an external API
+ */
+async function snapToRoads(waypoints: Coordinate[], profile: RouteProfile = 'foot'): Promise<Coordinate[]> {
+  if (waypoints.length <= 2) return waypoints;
+  
+  try {
+    // Utiliser le profil approprié pour l'API
+    const apiProfile = profile === 'foot' ? 'foot-walking' : 
+                       profile === 'bike' ? 'cycling-regular' : 
+                       'driving-car';
+    
+    // Ne pas soumettre trop de points à la fois à l'API
+    const maxPointsPerRequest = 100;
+    if (waypoints.length > maxPointsPerRequest) {
+      // Réduire de façon intelligente
+      const reducedPoints = reduceWaypoints(waypoints, maxPointsPerRequest);
+      return snapToRoads(reducedPoints, profile);
+    }
+    
+    // Appel à l'API pour le snapping
+    const response = await fetch('https://api.openrouteservice.org/v2/snap/json', {
+      method: 'POST',
+      headers: {
+        'Authorization': process.env.ORS_API_KEY || '',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        locations: waypoints.map(p => [p.lng, p.lat]),
+        profile: apiProfile
+      })
+    });
+    
+    if (!response.ok) {
+      console.warn(`Snapping API response: ${response.status}. Using original points.`);
+      return waypoints;
+    }
+
+    const data = await response.json();
+    
+    // Extraire les points snappés
+    if (data && data.features && data.features.length > 0) {
+      return data.features.map((feature: any) => ({
+        lat: feature.geometry.coordinates[1],
+        lng: feature.geometry.coordinates[0]
+      }));
+    }
+    
+    return waypoints;
+  } catch (error) {
+    console.error('Road snapping failed, using original points:', error);
+    return waypoints;
+  }
+}
+
+/**
+ * Align the generated route back to original points where appropriate
+ */
+function alignRouteToOriginal(route: Coordinate[], original: Coordinate[]): Coordinate[] {
+  if (route.length <= 2 || original.length <= 2) return route;
+  
+  const alignedRoute: Coordinate[] = [];
+  const searchRadius = 0.02; // ~200m
+  
+  let lastOriginalMatchIndex = -1;
+  
+  for (let i = 0; i < route.length; i++) {
+    const routePoint = route[i];
+    let closestDistance = Infinity;
+    let closestPoint = routePoint;
+    let closestOriginalIndex = -1;
+    
+    // Recherche des points originaux proches
+    // Optimisation: ne chercher que dans une fenêtre autour du dernier point trouvé
+    const startIdx = Math.max(0, lastOriginalMatchIndex - 10);
+    const endIdx = Math.min(original.length, lastOriginalMatchIndex + 30);
+    
+    for (let j = startIdx; j < endIdx; j++) {
+      const originalPoint = original[j];
+      const distance = calculateGeoDistance(routePoint, originalPoint);
+      
+      if (distance < closestDistance) {
+        closestDistance = distance;
+        closestPoint = originalPoint;
+        closestOriginalIndex = j;
+      }
+    }
+    
+    // Si un point original est assez proche, l'utiliser
+    if (closestDistance < searchRadius) {
+      alignedRoute.push(closestPoint);
+      lastOriginalMatchIndex = closestOriginalIndex;
+    } else {
+      // Sinon, conserver le point de route ou faire une interpolation
+      if (alignedRoute.length > 0 && i > 0) {
+        // Interpolation simple entre dernier point aligné et point de route
+        alignedRoute.push({
+          lat: (alignedRoute[alignedRoute.length - 1].lat * 0.3) + (routePoint.lat * 0.7),
+          lng: (alignedRoute[alignedRoute.length - 1].lng * 0.3) + (routePoint.lng * 0.7)
+        });
+      } else {
+        alignedRoute.push(routePoint);
+      }
+    }
+  }
+  
+  return alignedRoute;
+}
+
+/**
+ * Generate profile-specific variations for route simulation
+ */
+function getProfileVariation(
+  ratio: number, 
+  profile: RouteProfile, 
+  scale: number,
+  seed: number
+): Coordinate {
+  // Valeurs de bruit pseudo-aléatoires basées sur la position
+  const noise1 = Math.sin(ratio * 6.28 + seed * 0.1) * 0.5;
+  const noise2 = Math.cos(ratio * 9.42 + seed * 0.2) * 0.5;
+  
+  switch (profile) {
+    case 'foot':
+      // Piéton: variations plus fréquentes et moins prévisibles
+      return {
+        lat: (noise1 * 0.7 + noise2 * 0.3) * scale * 1.2,
+        lng: (noise1 * 0.3 + noise2 * 0.7) * scale * 1.2
+      };
+    
+    case 'bike':
+      // Vélo: variations plus douces mais encore notables
+      return {
+        lat: (noise1 * 0.6 + noise2 * 0.4) * scale * 0.8,
+        lng: (noise1 * 0.4 + noise2 * 0.6) * scale * 0.8
+      };
+    
+    case 'car':
+      // Voiture: variations minimes, routes plus rectilignes
+      return {
+        lat: (noise1 * 0.5 + noise2 * 0.5) * scale * 0.4,
+        lng: (noise1 * 0.5 + noise2 * 0.5) * scale * 0.4
+      };
+      
+    default:
+      return { lat: 0, lng: 0 };
+  }
 }

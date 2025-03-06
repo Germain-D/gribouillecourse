@@ -18,7 +18,7 @@
       </ClientOnly>
       
       <div class="actions mt-6 flex gap-4">
-        <button class="btn btn-primary" @click="router.push('/')">Nouveau dessin</button>
+        <button class="btn btn-primary" @click="router.push('/draw')">Nouveau dessin</button>
         <button class="btn btn-success" @click="downloadGpx">Télécharger GPX</button>
       </div>
     </div>
