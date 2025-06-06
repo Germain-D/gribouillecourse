@@ -27,6 +27,39 @@ export const useMapStore = defineStore('map', {
   
   getters: {
     pointsCount: (state) => state.drawingPoints.length,
+    
+    // Calculate total distance of drawn path
+    getTotalDistance: (state) => {
+      if (state.drawingPoints.length < 2) return 0;
+      
+      let totalDistance = 0;
+      for (let i = 1; i < state.drawingPoints.length; i++) {
+        const prev = state.drawingPoints[i - 1];
+        const current = state.drawingPoints[i];
+        totalDistance += calculateDistance(prev, current);
+      }
+      
+      return totalDistance;
+    },
+    
+    // Get path bounds for map fitting
+    getPathBounds: (state) => {
+      if (state.drawingPoints.length === 0) return null;
+      
+      let minLat = state.drawingPoints[0].lat;
+      let maxLat = state.drawingPoints[0].lat;
+      let minLng = state.drawingPoints[0].lng;
+      let maxLng = state.drawingPoints[0].lng;
+      
+      state.drawingPoints.forEach(point => {
+        minLat = Math.min(minLat, point.lat);
+        maxLat = Math.max(maxLat, point.lat);
+        minLng = Math.min(minLng, point.lng);
+        maxLng = Math.max(maxLng, point.lng);
+      });
+      
+      return { minLat, maxLat, minLng, maxLng };
+    }
   },
   
   actions: {
@@ -35,8 +68,8 @@ export const useMapStore = defineStore('map', {
       this.mapCenter = location;
     },
     
-    setZoom(newZoom: number) {
-      this.zoom = newZoom;
+    setZoom(zoom: number) {
+      this.zoom = Math.max(1, Math.min(20, zoom));
     },
     
     // Drawing methods
@@ -56,8 +89,11 @@ export const useMapStore = defineStore('map', {
     },
     
     addPoint(point: LatLng) {
-      this.drawingPoints.push(point);
-      this.notifySubscribers();
+      // Validate the point before adding
+      if (isValidLatLng(point)) {
+        this.drawingPoints.push(point);
+        this.notifySubscribers();
+      }
     },
     
     removeLastPoint() {
@@ -69,6 +105,12 @@ export const useMapStore = defineStore('map', {
     
     clearDrawing() {
       this.drawingPoints = [];
+      this.notifySubscribers();
+    },
+    
+    // Bulk operations for performance
+    setDrawingPoints(points: LatLng[]) {
+      this.drawingPoints = points.filter(isValidLatLng);
       this.notifySubscribers();
     },
     
@@ -94,28 +136,52 @@ export const useMapStore = defineStore('map', {
       });
     },
     
-    // Location-based methods
+    // Utility methods
     getDistance(point1: LatLng, point2: LatLng): number {
-      const R = 6371; // Earth's radius in km
-      const dLat = (point2.lat - point1.lat) * Math.PI / 180;
-      const dLng = (point2.lng - point1.lng) * Math.PI / 180;
-      const a = 
-        Math.sin(dLat/2) * Math.sin(dLat/2) +
-        Math.cos(point1.lat * Math.PI / 180) * Math.cos(point2.lat * Math.PI / 180) * 
-        Math.sin(dLng/2) * Math.sin(dLng/2);
-      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-      return R * c;
+      return calculateDistance(point1, point2);
     },
     
-    getTotalDistance(): number {
-      if (this.drawingPoints.length < 2) return 0;
-      
-      let totalDistance = 0;
-      for (let i = 1; i < this.drawingPoints.length; i++) {
-        totalDistance += this.getDistance(this.drawingPoints[i-1], this.drawingPoints[i]);
+    // Get simplified version of path for API calls
+    getSimplifiedPath(maxPoints: number = 50): LatLng[] {
+      if (this.drawingPoints.length <= maxPoints) {
+        return [...this.drawingPoints];
       }
       
-      return totalDistance;
+      const step = this.drawingPoints.length / maxPoints;
+      const simplified: LatLng[] = [];
+      
+      for (let i = 0; i < maxPoints; i++) {
+        const index = Math.min(Math.floor(i * step), this.drawingPoints.length - 1);
+        simplified.push(this.drawingPoints[index]);
+      }
+      
+      return simplified;
     }
   }
 });
+
+// Helper functions
+function calculateDistance(point1: LatLng, point2: LatLng): number {
+  const R = 6371; // Earth's radius in km
+  const dLat = (point2.lat - point1.lat) * Math.PI / 180;
+  const dLng = (point2.lng - point1.lng) * Math.PI / 180;
+  const a = 
+    Math.sin(dLat/2) * Math.sin(dLat/2) +
+    Math.cos(point1.lat * Math.PI / 180) * Math.cos(point2.lat * Math.PI / 180) * 
+    Math.sin(dLng/2) * Math.sin(dLng/2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+  return R * c;
+}
+
+function isValidLatLng(point: LatLng): boolean {
+  return (
+    typeof point.lat === 'number' &&
+    typeof point.lng === 'number' &&
+    !isNaN(point.lat) &&
+    !isNaN(point.lng) &&
+    point.lat >= -90 &&
+    point.lat <= 90 &&
+    point.lng >= -180 &&
+    point.lng <= 180
+  );
+}
