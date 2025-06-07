@@ -1,85 +1,157 @@
-# Map Drawing App
+# GribouilleCourse / DrawYourPath
 
-This project is a web application that allows users to draw freehand paths, visualize them on a map, and export the paths as GPX files. It is built using Nuxt.js, Tailwind CSS, Pinia for state management, and DaisyUI for UI components.
+> 🎨 Transform your hand-drawn sketches into real running routes that follow actual roads and trails
 
-## Features
+**GribouilleCourse** (French) / **DrawYourPath** (English) is a free web application that allows you to draw freehand paths on a map and automatically converts them into real GPX routes following existing roads, trails, and paths. Perfect for runners, cyclists, and hikers who want to create unique routes from their imagination.
 
-- Freehand drawing area for creating paths.
-- Visualization of drawn paths on a map.
-- Export functionality to download paths as GPX files.
-- Responsive design using Tailwind CSS and DaisyUI components.
+## ✨ Features
 
-## Project Structure
+- **🎨 Freehand Drawing**: Draw your route idea directly on an interactive map with your mouse or finger
+- **🗺️ Smart Route Generation**: Advanced routing algorithms that transform your sketch into real routes following existing roads, trails, and paths
+- **🗺️ Multiple Activity Types**: Support for running/walking, cycling, and driving routes
+- **📱 Responsive Design**: Works seamlessly on desktop, tablet, and mobile devices
+- **🌍 Multilingual**: Full French and English support with language-specific URLs
+- **📍 Geolocation**: Optional GPS positioning to center the map on your location
+- **📁 GPX Export**: Download your generated routes as standard GPX files
+- **⌚ Watch Compatibility**: Detailed instructions for Garmin, Coros, Apple Watch, Polar, Suunto, and smartphone apps
+- **🆓 100% Free**: No subscriptions, no hidden fees - just use your own free OpenRouteService API key
+- **🎯 Privacy-Focused**: Your API key and data stay with you
 
-```
-map-drawing-app
-├── assets
-│   └── css
-│       └── tailwind.css
-├── components
-│   ├── DrawingCanvas.vue
-│   ├── ExportButton.vue
-│   ├── MapDisplay.vue
-│   └── Navigation.vue
-├── composables
-│   └── useDrawing.ts
-├── layouts
-│   └── default.vue
-├── pages
-│   ├── index.vue
-│   └── results.vue
-├── plugins
-│   └── map-plugin.ts
-├── public
-│   └── favicon.ico
-├── server
-│   └── api
-│       └── generate-path.ts
-├── stores
-│   └── path.ts
-├── app.vue
-├── nuxt.config.ts
-├── package.json
-├── tailwind.config.js
-└── README.md
-```
+## 🚀 Live Demo
 
-## Installation
+Visit the live application at: [Your Domain Here]
 
-1. Clone the repository:
-   ```
-   git clone https://github.com/yourusername/map-drawing-app.git
+## 🛠️ Tech Stack
+
+- **Frontend Framework**: [Nuxt.js 3](https://nuxt.com/) (Vue.js)
+- **Styling**: [Tailwind CSS](https://tailwindcss.com/) with [DaisyUI](https://daisyui.com/) components
+- **Maps**: [Leaflet](https://leafletjs.com/) with OpenStreetMap tiles
+- **State Management**: [Pinia](https://pinia.vuejs.org/)
+- **Internationalization**: Vue I18n with French and English translations
+- **Icons**: [Phosphor Icons](https://phosphoricons.com/)
+- **Routing API**: [OpenRouteService](https://openrouteservice.org/)
+- **Deployment**: Static site generation ready
+
+## 🔧 Installation & Setup
+
+1. **Clone the repository**
+
+   ```bash
+   git clone https://github.com/yourusername/draw_your_running_path.git
+   cd draw_your_running_path
    ```
 
-2. Navigate to the project directory:
-   ```
-   cd map-drawing-app
-   ```
+2. **Install dependencies**
 
-3. Install the dependencies:
-   ```
+   ```bash
    npm install
+   # or
+   yarn install
+   # or
+   pnpm install
    ```
 
-4. Run the development server:
-   ```
+3. **Run the development server**
+
+   ```bash
    npm run dev
+   # or
+   yarn dev
+   # or
+   pnpm dev
    ```
 
-## Usage
+4. **Open your browser**
+   Navigate to `http://localhost:3000`
 
-- Navigate to the home page to start drawing your path.
-- Use the drawing canvas to create your desired path.
-- After finishing your drawing, navigate to the results page to view the path on the map.
-- Use the export button to download the path as a GPX file.
+## 🔑 API Key Setup
 
-## Technologies Used
+This application requires a free OpenRouteService API key:
 
-- **Nuxt.js**: A framework for Vue.js that enables server-side rendering and static site generation.
-- **Tailwind CSS**: A utility-first CSS framework for styling the application.
-- **Pinia**: A state management library for Vue.js applications.
-- **DaisyUI**: A component library for Tailwind CSS that provides pre-designed UI components.
+1. Visit [OpenRouteService Developer Portal](https://openrouteservice.org/dev/#/signup)
+2. Create a free account
+3. Generate an API key (free tier includes 2000 requests/day)
+4. Enter your API key in the application interface
 
-## License
+**Note**: Your API key is stored locally in your browser and never sent to our servers except for route generation requests to OpenRouteService.
 
-This project is licensed under the MIT License. See the LICENSE file for more details.
+## 🌐 Multilingual Support
+
+The application supports both French and English with:
+
+- **French**: Default language with URLs like `/`, `/draw`, `/results`
+- **English**: URLs with `/en/` prefix like `/en/`, `/en/draw`, `/en/results`
+- **Automatic detection**: Browser language detection with manual switcher
+- **Complete translations**: All UI elements, messages, and instructions
+
+### Adding New Languages
+
+1. Create a new locale file in `i18n/locales/[lang].json`
+2. Add the language to `nuxt.config.ts` in the i18n configuration
+3. Update navigation links and URL structure as needed
+
+## 📱 Device Compatibility
+
+The application includes detailed instructions for using generated GPX files on:
+
+- **Sports Watches**: Garmin, Coros, Apple Watch, Polar, Suunto
+- **Smartphone Apps**: Strava, Komoot, AllTrails, ViewRanger/Outdooractive
+- **Navigation Apps**: Most GPX-compatible applications
+
+## 🤝 Contributing
+
+We welcome contributions! Here's how you can help:
+
+1. **Fork the repository**
+2. **Create a feature branch**: `git checkout -b feature/amazing-feature`
+3. **Make your changes** and test thoroughly
+4. **Commit your changes**: `git commit -m 'Add amazing feature'`
+5. **Push to the branch**: `git push origin feature/amazing-feature`
+6. **Open a Pull Request**
+
+### Areas for Contribution
+
+- 🌍 **Translations**: Add support for new languages
+- 🎨 **UI/UX**: Improve the user interface and experience
+- 🐛 **Bug Fixes**: Help identify and fix issues
+- 📱 **Mobile**: Enhance mobile experience
+- 🗺️ **Maps**: Add new map providers or improve routing
+- 📚 **Documentation**: Improve guides and instructions
+
+## 🐛 Bug Reports & Feature Requests
+
+Please use GitHub Issues to:
+
+- Report bugs with detailed reproduction steps
+- Request new features with clear use cases
+- Suggest improvements to existing functionality
+
+## 📄 License
+
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- **OpenRouteService** for providing the excellent routing API
+- **OpenStreetMap** community for the detailed map data
+- **Nuxt.js** team for the amazing framework
+- **Tailwind CSS** and **DaisyUI** for the beautiful styling system
+- **Leaflet** for the robust mapping library
+
+## 🌟 Support the Project
+
+If you find this project useful:
+
+- ⭐ Star the repository
+- 🐛 Report bugs and suggest features
+- 🤝 Contribute code or translations
+- 📢 Share it with fellow runners and cyclists!
+
+## 📞 Contact
+
+- **GitHub Issues**: For bug reports and feature requests
+- **Discussions**: For questions and community support
+
+---
+
+_Made with ❤️ for the running and cycling community_
