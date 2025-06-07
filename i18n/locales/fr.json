@@ -1,0 +1,418 @@
+{
+    "nav": {
+        "draw": "Dessiner",
+        "results": "Résultats",
+        "apiKey": "Clé API",
+        "getApiKey": "Obtenir une clé API gratuite",
+        "links": {
+            "home": "/",
+            "draw": "/draw",
+            "results": "/results",
+            "apiKeyUrl": "https://openrouteservice.org/dev/#/signup"
+        }
+    },
+    "hero": {
+        "title": "GribouilleCourse",
+        "subtitle": "Dessinez. Générez. Courez.",
+        "description": "Transformez un simple dessin en parcours réel qui suit les routes, sentiers et chemins. Créez vos itinéraires de course ou de randonnée en quelques secondes.",
+        "createRoute": "Créer mon parcours",
+        "links": {
+            "draw": "/draw"
+        }
+    },
+    "features": {
+        "title": "Pourquoi choisir GribouilleCourse ?",
+        "subtitle": "Découvrez une nouvelle façon de créer vos parcours de course. Simple, gratuit et efficace.",
+        "intelligentDrawing": {
+            "title": "Dessin Intelligent",
+            "description": "Notre IA analyse votre dessin et détecte automatiquement les virages, les points critiques et optimise le tracé pour un parcours naturel."
+        },
+        "drawYourIdea": {
+            "title": "Dessinez votre idée",
+            "description": "Esquissez rapidement le parcours de vos rêves à main levée, sans contraintes ni limitations techniques."
+        },
+        "realRoutes": {
+            "title": "Routes réelles",
+            "description": "Notre algorithme intelligent transforme votre dessin en parcours suivant les vraies routes et chemins existants."
+        },
+        "gpxExport": {
+            "title": "Export GPX",
+            "description": "Exportez facilement vers Strava, Garmin, Coros, Suunto ou toute autre application au format GPX standard."
+        }
+    },
+    "howItWorks": {
+        "title": "Comment ça fonctionne",
+        "subtitle": "En 3 étapes simples, transformez votre idée en parcours réel que vous pouvez suivre sur votre montre GPS",
+        "step1": {
+            "title": "1. Dessinez votre parcours",
+            "description": "Utilisez notre interface intuitive pour dessiner le parcours que vous imaginez, à main levée sur la carte interactive."
+        },
+        "step2": {
+            "title": "2. Configurez vos préférences",
+            "description": "Choisissez votre type d'activité (course, vélo, voiture), définissez la distance maximale et ajustez les paramètres."
+        },
+        "step3": {
+            "title": "3. Obtenez votre parcours",
+            "description": "Notre algorithme génère automatiquement un parcours réel qui suit les routes existantes et respecte votre dessin."
+        }
+    },
+    "freeModel": {
+        "title": "🎉 Complètement Gratuit !",
+        "subtitle": "Contrairement aux autres applications payantes, GribouilleCourse est 100% gratuit. Vous utilisez simplement votre propre clé API OpenRouteService (également gratuite).",
+        "freeApp": {
+            "title": "Application Gratuite",
+            "description": "Aucun abonnement, aucun frais caché. L'application est totalement gratuite à vie."
+        },
+        "yourApiKey": {
+            "title": "Votre Clé API",
+            "description": "Utilisez votre propre clé API OpenRouteService (gratuite) pour la génération de parcours."
+        },
+        "dailyRequests": {
+            "title": "2000 Requêtes/Jour",
+            "description": "La clé gratuite vous donne droit à 2000 générations de parcours par jour !"
+        },
+        "howItWorksTitle": "Comment ça marche ?",
+        "howItWorksDescription": "Nous utilisons l'API OpenRouteService pour transformer vos dessins en vrais parcours. Au lieu de payer pour chaque utilisateur, vous utilisez directement votre propre clé gratuite ! C'est un modèle économique transparent et durable.",
+        "getFreeKey": "Obtenir ma clé gratuite",
+        "tryNow": "Essayer maintenant"
+    },
+    "testimonials": {
+        "title": "Ce que nos utilisateurs en disent",
+        "subtitle": "Découvrez comment GribouilleCourse transforme la façon de créer des parcours",
+        "roadrunner": {
+            "name": "Bip Bip 🏃‍♂️",
+            "role": "Coureur ultra-rapide • Spécialiste des routes sinueuses",
+            "quote": "Meep Meep ! Enfin une app qui comprend mes parcours zigzagants ! J'ai dessiné ma route habituelle pour semer Vil Coyote et GribouilleCourse l'a parfaitement transformée en GPX. Maintenant même les autres coureurs peuvent suivre mes traces... s'ils arrivent à suivre ! 💨"
+        },
+        "jerry": {
+            "name": "Jerry 🐭",
+            "role": "Expert en esquive • Champion de parkour urbain",
+            "quote": "Fantastique pour créer des parcours d'évasion ! J'ai dessiné un circuit avec tous mes raccourcis secrets pour échapper à Tom, et l'app a généré un vrai parcours utilisable. Maintenant je peux partager mes techniques d'esquive avec d'autres coureurs (mais chut, ne le dites pas à Tom ! 🤫)."
+        }
+    },
+    "cta": {
+        "title": "Prêt à créer votre parcours unique ?",
+        "subtitle": "Dessinez, générez, courez. Transformez votre créativité en parcours réel en quelques minutes."
+    },
+    "drawingCanvas": {
+        "modeActive": "Mode dessin actif",
+        "points": "points",
+        "apiKey": {
+            "title": "Clé API OpenRouteService (Gratuite)",
+            "placeholder": "Entrez votre clé API ici...",
+            "required": "Clé API requise pour la génération de parcours",
+            "valid": "Clé API valide",
+            "invalid": "Format de clé invalide",
+            "show": "Afficher",
+            "hide": "Masquer",
+            "instructionsTitle": "Comment obtenir une clé API gratuite ?",
+            "freeInfo": "100% gratuit : 2000 requêtes/jour incluses !",
+            "steps": {
+                "step1": "Rendez-vous sur",
+                "step2": "Créez un compte gratuit (avec votre email)",
+                "step3": "Confirmez votre email",
+                "step4": "Connectez-vous et allez dans \"Dashboard\"",
+                "step5": "Créez un nouveau \"Token\" / \"API Key\"",
+                "step6": "Copiez la clé et collez-la ci-dessus"
+            }
+        },
+        "routeType": {
+            "label": "Type de parcours",
+            "foot": "🚶 À pied / Course",
+            "bike": "🚴 Vélo",
+            "car": "🚗 Voiture"
+        },
+        "maxDistance": "Distance maximale",
+        "userLocation": {
+            "label": "Centrer la carte sur ma position",
+            "searching": "Recherche de votre position...",
+            "found": "Position trouvée (précision: {accuracy}m)",
+            "denied": "Permission de géolocalisation refusée",
+            "unavailable": "Position non disponible",
+            "timeout": "Délai de géolocalisation dépassé",
+            "error": "Impossible d'obtenir votre position",
+            "unsupported": "La géolocalisation n'est pas prise en charge par votre navigateur"
+        },
+        "drawingMode": {
+            "label": "Activer le mode dessin à main levée",
+            "active": "Cliquez et faites glisser sur la carte pour dessiner votre parcours.",
+            "pointsDrawn": "{count} points dessinés. Activez le mode dessin pour continuer."
+        },
+        "buttons": {
+            "clear": "Effacer",
+            "generate": "Générer le parcours",
+            "generating": "Génération...",
+            "apiKeyRequired": "🔑 Clé API requise",
+            "apiKeyInvalid": "🔑 Clé API invalide"
+        },
+        "preview": {
+            "title": "Aperçu du dessin",
+            "distance": "Distance estimée du dessin"
+        },
+        "help": {
+            "title": "🎉 Application 100% gratuite !",
+            "description": "Cette application est entièrement gratuite. Vous devez simplement utiliser votre propre clé API OpenRouteService (aussi gratuite) pour générer vos parcours.",
+            "howToTitle": "Comment dessiner votre parcours :",
+            "steps": {
+                "step1": "Obtenez votre clé API gratuite (voir ci-dessus)",
+                "step2": "Activez le mode dessin avec la case à cocher",
+                "step3": "Cliquez et faites glisser sur la carte pour dessiner votre forme",
+                "step4": "Votre dessin apparaîtra en bleu sur la carte",
+                "step5": "Ajustez la distance maximale selon vos préférences",
+                "step6": "Cliquez sur \"Générer le parcours\" pour créer votre itinéraire GPX"
+            }
+        },
+        "generation": {
+            "title": "Génération du parcours",
+            "cancel": "Annuler",
+            "steps": {
+                "preparation": {
+                    "title": "Préparation des données",
+                    "description": "Analyse et optimisation des points de dessin..."
+                },
+                "detection": {
+                    "title": "Détection des points critiques",
+                    "description": "Identification des virages et éléments importants du tracé..."
+                },
+                "generation": {
+                    "title": "Génération du parcours",
+                    "description": "Recherche des routes existantes correspondant à votre dessin..."
+                },
+                "finalization": {
+                    "title": "Finalisation",
+                    "description": "Application des ajustements finaux et création du fichier GPX..."
+                }
+            }
+        },
+        "markers": {
+            "start": "Départ",
+            "end": "Arrivée",
+            "userPosition": "Votre position"
+        },
+        "alerts": {
+            "minPoints": "Veuillez dessiner un chemin sur la carte avant de générer le parcours.",
+            "apiKeyRequired": "🔑 Clé API requise !\n\nPour utiliser cette fonctionnalité gratuitement, vous devez entrer votre propre clé API OpenRouteService.\n\nCliquez sur 'Comment obtenir une clé API gratuite ?' ci-dessus pour plus d'informations.",
+            "apiKeyInvalid": "🔑 Clé API invalide !\n\nLe format de votre clé API semble incorrect. Vérifiez que vous avez copié la clé complète depuis votre tableau de bord OpenRouteService.",
+            "generateError": "Échec de la génération du parcours: {error}\n\nVeuillez vérifier votre connexion internet et réessayer.",
+            "apiError": "🔑 Clé API invalide ou expirée !\n\nVérifiez que votre clé API OpenRouteService est correcte et active.",
+            "quotaError": "⏱️ Limite de quota dépassée !\n\nVous avez atteint la limite quotidienne de votre clé API. Réessayez demain ou mettez à niveau votre compte OpenRouteService."
+        },
+        "mapInfo": {
+            "navigation": "Mode navigation",
+            "drawing": "Dessin en cours...",
+            "pointsCount": "{count} points"
+        },
+        "links": {
+            "results": "/results"
+        }
+    },
+    "results": {
+        "title": "Parcours Généré",
+        "noPath": "Aucun parcours n'a été généré. Veuillez retourner à la page de dessin.",
+        "backToDraw": "Retour au dessin",
+        "newDrawing": "Nouveau dessin",
+        "downloadGpx": "Télécharger GPX",
+        "howToUseGpx": "Comment utiliser le fichier GPX ?",
+        "links": {
+            "home": "/",
+            "draw": "/draw",
+            "howToUseGpx": "/howusegpx"
+        }
+    },
+    "draw": {
+        "title": "Gribouille ta course ici !"
+    },
+    "howToUseGpx": {
+        "title": "Comment utiliser un fichier GPX",
+        "whatIsGpx": {
+            "title": "Qu'est-ce qu'un fichier GPX?",
+            "description1": "Un fichier GPX (GPS Exchange Format) est un format standard pour stocker des données GPS comme des itinéraires, des parcours et des points d'intérêt. Il vous permet de suivre un parcours prédéfini sur votre montre ou appareil de sport.",
+            "description2": "Une fois que vous avez généré un parcours avec notre application, vous pouvez télécharger le fichier GPX et l'utiliser sur de nombreuses montres de sport et applications. Suivez les instructions ci-dessous selon votre appareil."
+        },
+        "garmin": {
+            "title": "Garmin",
+            "viaConnect": "Via Garmin Connect",
+            "viaUsb": "Via USB (Méthode alternative)",
+            "steps": {
+                "connect1": "Connectez-vous à Garmin Connect depuis votre navigateur",
+                "connect2": "Cliquez sur Entraînement dans la barre de navigation",
+                "connect3": "Sélectionnez Parcours",
+                "connect4": "Cliquez sur Importer ou Créer un parcours",
+                "connect5": "Sélectionnez le fichier GPX téléchargé depuis notre application",
+                "connect6": "Une fois importé, donnez un nom à votre parcours et sauvegardez-le",
+                "connect7": "Synchronisez votre montre Garmin avec l'application Garmin Connect",
+                "connect8": "Le parcours sera maintenant disponible dans la section \"Parcours\" de votre montre",
+                "usb1": "Connectez votre montre Garmin à votre ordinateur via câble USB",
+                "usb2": "La montre apparaîtra comme un périphérique de stockage",
+                "usb3": "Naviguez jusqu'au dossier Garmin/NewFiles",
+                "usb4": "Copiez le fichier GPX directement dans ce dossier",
+                "usb5": "Éjectez et débranchez votre montre",
+                "usb6": "Les parcours seront disponibles dans le menu Parcours de votre montre"
+            },
+            "note": "L'emplacement exact du dossier peut varier selon votre modèle de montre Garmin."
+        },
+        "coros": {
+            "title": "Coros",
+            "viaApp": "Via l'application COROS",
+            "steps": {
+                "app1": "Ouvrez l'application COROS sur votre smartphone",
+                "app2": "Allez dans l'onglet Entraînement",
+                "app3": "Sélectionnez Navigation",
+                "app4": "Touchez l'icône + pour ajouter un nouveau parcours",
+                "app5": "Sélectionnez Importer un fichier GPX",
+                "app6": "Choisissez le fichier GPX téléchargé depuis notre application",
+                "app7": "Donnez un nom à votre parcours et sauvegardez-le",
+                "app8": "Synchronisez avec votre montre COROS"
+            },
+            "warning": "Les montres COROS ont une limite de points GPX (2000-5000 selon les modèles). Si votre parcours est très détaillé, il pourrait être tronqué."
+        },
+        "appleWatch": {
+            "title": "Apple Watch",
+            "viaWorkOutDoors": "Via WorkOutDoors (recommandé)",
+            "viaOtherApps": "Via d'autres applications",
+            "description": "L'Apple Watch ne prend pas en charge nativement les fichiers GPX, mais vous pouvez utiliser l'application tierce WorkOutDoors (payante mais très efficace).",
+            "steps": {
+                "work1": "Installez WorkOutDoors sur votre iPhone et Apple Watch",
+                "work2": "Ouvrez l'application WorkOutDoors sur votre iPhone",
+                "work3": "Touchez l'onglet Paramètres",
+                "work4": "Sélectionnez Parcours",
+                "work5": "Touchez Importer et sélectionnez le fichier GPX",
+                "work6": "Une fois importé, le parcours sera automatiquement synchronisé avec l'app sur votre Apple Watch"
+            },
+            "alternatives": "Alternatives à WorkOutDoors :",
+            "alternativesList": {
+                "viewRanger": "ViewRanger : Gratuit, synchronisation avec Apple Watch",
+                "strava": "Strava : Parcours Premium (abonnement payant requis)",
+                "komoot": "Komoot : Navigation pas à pas (fonctionnalités complètes avec abonnement)"
+            },
+            "note": "WorkOutDoors est généralement considérée comme la meilleure application pour suivre des parcours GPX sur l'Apple Watch en raison de ses cartes détaillées et de sa faible consommation de batterie."
+        },
+        "polar": {
+            "title": "Polar",
+            "viaFlow": "Via Polar Flow",
+            "steps": {
+                "flow1": "Connectez-vous à Polar Flow depuis votre navigateur",
+                "flow2": "Allez dans Favoris",
+                "flow3": "Cliquez sur Importer un itinéraire",
+                "flow4": "Sélectionnez le fichier GPX téléchargé depuis notre application",
+                "flow5": "Donnez un nom à votre itinéraire et enregistrez-le",
+                "flow6": "Synchronisez votre montre Polar avec l'application Polar Flow",
+                "flow7": "Accédez à l'itinéraire sur votre montre via le menu Itinéraires"
+            },
+            "warning": "Tous les modèles Polar ne prennent pas en charge la navigation par itinéraire. Vérifiez la compatibilité de votre montre."
+        },
+        "suunto": {
+            "title": "Suunto",
+            "viaApp": "Via l'application Suunto",
+            "viaMovescount": "Via Suunto Movescount (anciens modèles)",
+            "steps": {
+                "app1": "Ouvrez l'application Suunto sur votre smartphone",
+                "app2": "Appuyez sur l'icône de carte (ou Planifier & Naviguer)",
+                "app3": "Touchez Importer un itinéraire",
+                "app4": "Sélectionnez le fichier GPX téléchargé",
+                "app5": "Donnez un nom à votre itinéraire",
+                "app6": "Synchronisez avec votre montre Suunto",
+                "app7": "L'itinéraire sera maintenant disponible dans le menu Navigation de votre montre",
+                "moves1": "Connectez-vous à Movescount",
+                "moves2": "Allez dans la section Planification & Création d'itinéraires",
+                "moves3": "Cliquez sur Importer",
+                "moves4": "Sélectionnez le fichier GPX et enregistrez l'itinéraire",
+                "moves5": "Synchronisez votre montre avec Movescount"
+            },
+            "note": "Suunto a migré de Movescount vers l'application Suunto. Si vous avez une montre plus récente, utilisez l'application Suunto."
+        },
+        "smartphone": {
+            "title": "Applications Smartphone",
+            "description": "Applications populaires pour utiliser des fichiers GPX",
+            "strava": {
+                "title": "Strava",
+                "steps": {
+                    "step1": "Ouvrez l'application Strava",
+                    "step2": "Allez dans l'onglet Explore",
+                    "step3": "Touchez Routes (nécessite un abonnement Premium)",
+                    "step4": "Touchez le symbole + puis Importer un fichier GPX",
+                    "step5": "Sélectionnez votre fichier GPX"
+                }
+            },
+            "komoot": {
+                "title": "Komoot",
+                "steps": {
+                    "step1": "Ouvrez l'application Komoot",
+                    "step2": "Allez dans l'onglet Profil",
+                    "step3": "Sélectionnez Tours",
+                    "step4": "Appuyez sur Import GPX",
+                    "step5": "Choisissez votre fichier GPX"
+                }
+            },
+            "allTrails": {
+                "title": "AllTrails",
+                "steps": {
+                    "step1": "Ouvrez AllTrails sur votre navigateur (pas disponible dans l'application)",
+                    "step2": "Cliquez sur Créer un parcours",
+                    "step3": "Sélectionnez Importer",
+                    "step4": "Choisissez votre fichier GPX"
+                }
+            },
+            "viewRanger": {
+                "title": "ViewRanger / Outdooractive",
+                "steps": {
+                    "step1": "Ouvrez l'application ViewRanger (maintenant Outdooractive)",
+                    "step2": "Allez dans Menu puis Mes parcours",
+                    "step3": "Appuyez sur + puis Importer",
+                    "step4": "Sélectionnez le fichier GPX"
+                }
+            },
+            "note": "La plupart des applications de course, de randonnée et de navigation prennent en charge l'importation de fichiers GPX. Certaines fonctionnalités peuvent nécessiter un abonnement."
+        },
+        "generalTips": {
+            "title": "Conseils généraux",
+            "subtitle": "Pour une utilisation optimale des parcours GPX",
+            "battery": {
+                "title": "Autonomie de batterie",
+                "description": "Suivre un parcours GPX consomme davantage de batterie qu'un enregistrement normal. Assurez-vous que votre montre soit bien chargée avant de partir."
+            },
+            "complexity": {
+                "title": "Complexité du parcours",
+                "description": "Un fichier GPX très détaillé avec de nombreux points peut ralentir certains appareils. Si vous rencontrez des problèmes, essayez une version simplifiée du parcours."
+            },
+            "alerts": {
+                "title": "Alertes de déviation",
+                "description": "Configurez les alertes de déviation de parcours dans les paramètres de votre appareil pour être notifié si vous vous éloignez de l'itinéraire prévu."
+            },
+            "offline": {
+                "title": "Cartographie hors ligne",
+                "description": "Pour les zones avec une mauvaise couverture réseau, téléchargez les cartes hors ligne avant votre sortie."
+            },
+            "safety": {
+                "title": "Sécurité",
+                "description": "Ne fixez pas constamment votre montre pendant que vous courez. Faites attention à votre environnement et consultez l'itinéraire uniquement lorsque c'est sécuritaire de le faire."
+            },
+            "test": "Testez l'importation et la navigation sur votre appareil avant de partir pour une longue sortie. Cela vous permettra de vous familiariser avec l'interface et les fonctionnalités."
+        },
+        "backToHome": "Retour à l'accueil",
+        "links": {
+            "home": "/"
+        }
+    },
+    "footer": {
+        "title": "GribouilleCourse",
+        "copyright": "© 2024 GribouilleCourse. Tous droits réservés.",
+        "links": {
+            "title": "Liens",
+            "about": "À propos",
+            "draw": "Dessiner",
+            "results": "Résultats",
+            "howToUseGpx": "Utiliser le fichier GPX",
+            "urls": {
+                "home": "/",
+                "about": "#",
+                "draw": "/draw",
+                "results": "/results",
+                "howToUseGpx": "/howusegpx"
+            }
+        },
+        "social": {
+            "title": "Social"
+        }
+    }
+}

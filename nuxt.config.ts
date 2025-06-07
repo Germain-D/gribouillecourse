@@ -2,7 +2,22 @@
 export default defineNuxtConfig({
   compatibilityDate: '2024-11-01',
   devtools: { enabled: true },
-  modules: ['@nuxtjs/tailwindcss',"@pinia/nuxt",'pinia-plugin-persistedstate/nuxt','@nuxt/icon'],
+  modules: [
+    '@nuxtjs/tailwindcss',
+    "@pinia/nuxt",
+    'pinia-plugin-persistedstate/nuxt',
+    '@nuxt/icon', 
+    '@nuxtjs/i18n'
+  ],
+  
+  i18n: {
+    defaultLocale: 'fr',
+    locales: [
+      { code: 'en', name: 'English', file: 'en.json' },
+      { code: 'fr', name: 'Français', file: 'fr.json' },
+    ]
+  },
+
   plugins: [
     { src: '~/plugins/matomo.client.js', mode: 'client' },
   ],

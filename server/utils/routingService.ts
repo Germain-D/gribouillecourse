@@ -540,11 +540,13 @@ export function reduceWaypoints(waypoints: Coordinate[], maxApiPoints: number = 
  * Version améliorée avec retry logic, cache et gestion d'erreurs robuste
  * @param waypoints - Tableau de coordonnées à traverser
  * @param profile - Type de routage (foot, bike, car)
+ * @param userApiKey - Clé API fournie par l'utilisateur
  * @param retryCount - Nombre de tentatives (par défaut 3)
  */
 export async function fetchRouteFromAPI(
   waypoints: Coordinate[], 
   profile: RouteProfile = 'foot',
+  userApiKey: string,
   retryCount: number = 3
 ): Promise<Coordinate[]> {
   // Validation des entrées
@@ -604,7 +606,7 @@ export async function fetchRouteFromAPI(
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': process.env.ORS_API_KEY || '',
+              'Authorization': userApiKey,
               'Accept': 'application/json, application/geo+json'
             },
             body: JSON.stringify(requestBody),

@@ -1,0 +1,418 @@
+{
+    "nav": {
+        "draw": "Draw",
+        "results": "Results",
+        "apiKey": "API Key",
+        "getApiKey": "Get free API key",
+        "links": {
+            "home": "/en/",
+            "draw": "/en/draw",
+            "results": "/en/results",
+            "apiKeyUrl": "https://openrouteservice.org/dev/#/signup"
+        }
+    },
+    "hero": {
+        "title": "DrawYourPath",
+        "subtitle": "Draw. Generate. Run.",
+        "description": "Transform a simple drawing into a real route that follows roads, trails and paths. Create your running or hiking routes in seconds.",
+        "createRoute": "Create my route",
+        "links": {
+            "draw": "/en/draw"
+        }
+    },
+    "features": {
+        "title": "Why choose DrawYourPath?",
+        "subtitle": "Discover a new way to create your running routes. Simple, free and effective.",
+        "intelligentDrawing": {
+            "title": "Intelligent Drawing",
+            "description": "Our AI analyzes your drawing and automatically detects turns, critical points and optimizes the path for a natural route."
+        },
+        "drawYourIdea": {
+            "title": "Draw your idea",
+            "description": "Quickly sketch the route of your dreams freehand, without constraints or technical limitations."
+        },
+        "realRoutes": {
+            "title": "Real routes",
+            "description": "Our intelligent algorithm transforms your drawing into routes following real existing roads and paths."
+        },
+        "gpxExport": {
+            "title": "GPX Export",
+            "description": "Easily export to Strava, Garmin, Coros, Suunto or any other application in standard GPX format."
+        }
+    },
+    "howItWorks": {
+        "title": "How it works",
+        "subtitle": "In 3 simple steps, transform your idea into a real route you can follow on your GPS watch",
+        "step1": {
+            "title": "1. Draw your route",
+            "description": "Use our intuitive interface to draw the route you imagine, freehand on the interactive map."
+        },
+        "step2": {
+            "title": "2. Configure your preferences",
+            "description": "Choose your activity type (running, cycling, driving), set the maximum distance and adjust parameters."
+        },
+        "step3": {
+            "title": "3. Get your route",
+            "description": "Our algorithm automatically generates a real route that follows existing roads and respects your drawing."
+        }
+    },
+    "freeModel": {
+        "title": "🎉 Completely Free!",
+        "subtitle": "Unlike other paid applications, DrawYourPath is 100% free. You simply use your own OpenRouteService API key (also free).",
+        "freeApp": {
+            "title": "Free Application",
+            "description": "No subscription, no hidden fees. The application is completely free for life."
+        },
+        "yourApiKey": {
+            "title": "Your API Key",
+            "description": "Use your own OpenRouteService API key (free) for route generation."
+        },
+        "dailyRequests": {
+            "title": "2000 Requests/Day",
+            "description": "The free key gives you the right to 2000 route generations per day!"
+        },
+        "howItWorksTitle": "How does it work?",
+        "howItWorksDescription": "We use the OpenRouteService API to transform your drawings into real routes. Instead of paying for each user, you use your own free key directly! It's a transparent and sustainable economic model.",
+        "getFreeKey": "Get my free key",
+        "tryNow": "Try now"
+    },
+    "testimonials": {
+        "title": "What our users say",
+        "subtitle": "Discover how DrawYourPath transforms the way routes are created",
+        "roadrunner": {
+            "name": "Road Runner 🏃‍♂️",
+            "role": "Ultra-fast runner • Specialist in winding roads",
+            "quote": "Meep Meep! Finally an app that understands my zigzag routes! I drew my usual path to escape Wile E. Coyote and DrawYourPath perfectly transformed it into GPX. Now even other runners can follow my tracks... if they can keep up! 💨"
+        },
+        "jerry": {
+            "name": "Jerry 🐭",
+            "role": "Dodging expert • Urban parkour champion",
+            "quote": "Fantastic for creating escape routes! I drew a circuit with all my secret shortcuts to escape Tom, and the app generated a real usable route. Now I can share my dodging techniques with other runners (but shh, don't tell Tom! 🤫)."
+        }
+    },
+    "cta": {
+        "title": "Ready to create your unique route?",
+        "subtitle": "Draw, generate, run. Transform your creativity into a real route in minutes."
+    },
+    "drawingCanvas": {
+        "modeActive": "Drawing mode active",
+        "points": "points",
+        "apiKey": {
+            "title": "OpenRouteService API Key (Free)",
+            "placeholder": "Enter your API key here...",
+            "required": "API key required for route generation",
+            "valid": "Valid API key",
+            "invalid": "Invalid key format",
+            "show": "Show",
+            "hide": "Hide",
+            "instructionsTitle": "How to get a free API key?",
+            "freeInfo": "100% free: 2000 requests/day included!",
+            "steps": {
+                "step1": "Go to",
+                "step2": "Create a free account (with your email)",
+                "step3": "Confirm your email",
+                "step4": "Log in and go to \"Dashboard\"",
+                "step5": "Create a new \"Token\" / \"API Key\"",
+                "step6": "Copy the key and paste it above"
+            }
+        },
+        "routeType": {
+            "label": "Route type",
+            "foot": "🚶 Walking / Running",
+            "bike": "🚴 Cycling",
+            "car": "🚗 Driving"
+        },
+        "maxDistance": "Maximum distance",
+        "userLocation": {
+            "label": "Center map on my location",
+            "searching": "Searching for your position...",
+            "found": "Position found (accuracy: {accuracy}m)",
+            "denied": "Geolocation permission denied",
+            "unavailable": "Position unavailable",
+            "timeout": "Geolocation timeout exceeded",
+            "error": "Unable to get your position",
+            "unsupported": "Geolocation is not supported by your browser"
+        },
+        "drawingMode": {
+            "label": "Enable freehand drawing mode",
+            "active": "Click and drag on the map to draw your route.",
+            "pointsDrawn": "{count} points drawn. Enable drawing mode to continue."
+        },
+        "buttons": {
+            "clear": "Clear",
+            "generate": "Generate route",
+            "generating": "Generating...",
+            "apiKeyRequired": "🔑 API key required",
+            "apiKeyInvalid": "🔑 Invalid API key"
+        },
+        "preview": {
+            "title": "Drawing preview",
+            "distance": "Estimated drawing distance"
+        },
+        "help": {
+            "title": "🎉 100% free application!",
+            "description": "This application is completely free. You simply need to use your own OpenRouteService API key (also free) to generate your routes.",
+            "howToTitle": "How to draw your route:",
+            "steps": {
+                "step1": "Get your free API key (see above)",
+                "step2": "Enable drawing mode with the checkbox",
+                "step3": "Click and drag on the map to draw your shape",
+                "step4": "Your drawing will appear in blue on the map",
+                "step5": "Adjust the maximum distance according to your preferences",
+                "step6": "Click \"Generate route\" to create your GPX itinerary"
+            }
+        },
+        "generation": {
+            "title": "Route generation",
+            "cancel": "Cancel",
+            "steps": {
+                "preparation": {
+                    "title": "Data preparation",
+                    "description": "Analysis and optimization of drawing points..."
+                },
+                "detection": {
+                    "title": "Critical points detection",
+                    "description": "Identification of turns and important elements of the path..."
+                },
+                "generation": {
+                    "title": "Route generation",
+                    "description": "Searching for existing roads matching your drawing..."
+                },
+                "finalization": {
+                    "title": "Finalization",
+                    "description": "Applying final adjustments and creating the GPX file..."
+                }
+            }
+        },
+        "markers": {
+            "start": "Start",
+            "end": "Finish",
+            "userPosition": "Your position"
+        },
+        "alerts": {
+            "minPoints": "Please draw a path on the map before generating the route.",
+            "apiKeyRequired": "🔑 API key required!\n\nTo use this feature for free, you need to enter your own OpenRouteService API key.\n\nClick on 'How to get a free API key?' above for more information.",
+            "apiKeyInvalid": "🔑 Invalid API key!\n\nThe format of your API key seems incorrect. Check that you have copied the complete key from your OpenRouteService dashboard.",
+            "generateError": "Route generation failed: {error}\n\nPlease check your internet connection and try again.",
+            "apiError": "🔑 Invalid or expired API key!\n\nCheck that your OpenRouteService API key is correct and active.",
+            "quotaError": "⏱️ Quota limit exceeded!\n\nYou have reached the daily limit of your API key. Try again tomorrow or upgrade your OpenRouteService account."
+        },
+        "mapInfo": {
+            "navigation": "Navigation mode",
+            "drawing": "Drawing in progress...",
+            "pointsCount": "{count} points"
+        },
+        "links": {
+            "results": "/en/results"
+        }
+    },
+    "results": {
+        "title": "Generated Route",
+        "noPath": "No route has been generated. Please return to the drawing page.",
+        "backToDraw": "Back to drawing",
+        "newDrawing": "New drawing",
+        "downloadGpx": "Download GPX",
+        "howToUseGpx": "How to use the GPX file?",
+        "links": {
+            "home": "/en/",
+            "draw": "/en/draw",
+            "howToUseGpx": "/en/howusegpx"
+        }
+    },
+    "draw": {
+        "title": "Doodle your race here!"
+    },
+    "howToUseGpx": {
+        "title": "How to use a GPX file",
+        "whatIsGpx": {
+            "title": "What is a GPX file?",
+            "description1": "A GPX file (GPS Exchange Format) is a standard format for storing GPS data such as routes, tracks and points of interest. It allows you to follow a predefined route on your sports watch or device.",
+            "description2": "Once you have generated a route with our application, you can download the GPX file and use it on many sports watches and applications. Follow the instructions below according to your device."
+        },
+        "garmin": {
+            "title": "Garmin",
+            "viaConnect": "Via Garmin Connect",
+            "viaUsb": "Via USB (Alternative method)",
+            "steps": {
+                "connect1": "Log in to Garmin Connect from your browser",
+                "connect2": "Click on Training in the navigation bar",
+                "connect3": "Select Courses",
+                "connect4": "Click on Import or Create a course",
+                "connect5": "Select the GPX file downloaded from our application",
+                "connect6": "Once imported, give your course a name and save it",
+                "connect7": "Sync your Garmin watch with the Garmin Connect app",
+                "connect8": "The course will now be available in the \"Courses\" section of your watch",
+                "usb1": "Connect your Garmin watch to your computer via USB cable",
+                "usb2": "The watch will appear as a storage device",
+                "usb3": "Navigate to the Garmin/NewFiles folder",
+                "usb4": "Copy the GPX file directly to this folder",
+                "usb5": "Eject and disconnect your watch",
+                "usb6": "Courses will be available in your watch's Courses menu"
+            },
+            "note": "The exact folder location may vary depending on your Garmin watch model."
+        },
+        "coros": {
+            "title": "Coros",
+            "viaApp": "Via the COROS app",
+            "steps": {
+                "app1": "Open the COROS app on your smartphone",
+                "app2": "Go to the Training tab",
+                "app3": "Select Navigation",
+                "app4": "Touch the + icon to add a new route",
+                "app5": "Select Import a GPX file",
+                "app6": "Choose the GPX file downloaded from our application",
+                "app7": "Give your route a name and save it",
+                "app8": "Sync with your COROS watch"
+            },
+            "warning": "COROS watches have a GPX point limit (2000-5000 depending on models). If your route is very detailed, it might be truncated."
+        },
+        "appleWatch": {
+            "title": "Apple Watch",
+            "viaWorkOutDoors": "Via WorkOutDoors (recommended)",
+            "viaOtherApps": "Via other apps",
+            "description": "Apple Watch does not natively support GPX files, but you can use the third-party app WorkOutDoors (paid but very effective).",
+            "steps": {
+                "work1": "Install WorkOutDoors on your iPhone and Apple Watch",
+                "work2": "Open the WorkOutDoors app on your iPhone",
+                "work3": "Touch the Settings tab",
+                "work4": "Select Routes",
+                "work5": "Touch Import and select the GPX file",
+                "work6": "Once imported, the route will be automatically synced with the app on your Apple Watch"
+            },
+            "alternatives": "Alternatives to WorkOutDoors:",
+            "alternativesList": {
+                "viewRanger": "ViewRanger: Free, syncs with Apple Watch",
+                "strava": "Strava: Premium Routes (paid subscription required)",
+                "komoot": "Komoot: Turn-by-turn navigation (full features with subscription)"
+            },
+            "note": "WorkOutDoors is generally considered the best app for following GPX routes on Apple Watch due to its detailed maps and low battery consumption."
+        },
+        "polar": {
+            "title": "Polar",
+            "viaFlow": "Via Polar Flow",
+            "steps": {
+                "flow1": "Log in to Polar Flow from your browser",
+                "flow2": "Go to Favorites",
+                "flow3": "Click on Import a route",
+                "flow4": "Select the GPX file downloaded from our application",
+                "flow5": "Give your route a name and save it",
+                "flow6": "Sync your Polar watch with the Polar Flow app",
+                "flow7": "Access the route on your watch via the Routes menu"
+            },
+            "warning": "Not all Polar models support route navigation. Check your watch's compatibility."
+        },
+        "suunto": {
+            "title": "Suunto",
+            "viaApp": "Via the Suunto app",
+            "viaMovescount": "Via Suunto Movescount (older models)",
+            "steps": {
+                "app1": "Open the Suunto app on your smartphone",
+                "app2": "Press the map icon (or Plan & Navigate)",
+                "app3": "Touch Import a route",
+                "app4": "Select the downloaded GPX file",
+                "app5": "Give your route a name",
+                "app6": "Sync with your Suunto watch",
+                "app7": "The route will now be available in your watch's Navigation menu",
+                "moves1": "Log in to Movescount",
+                "moves2": "Go to the Planning & Route Creation section",
+                "moves3": "Click Import",
+                "moves4": "Select the GPX file and save the route",
+                "moves5": "Sync your watch with Movescount"
+            },
+            "note": "Suunto has migrated from Movescount to the Suunto app. If you have a newer watch, use the Suunto app."
+        },
+        "smartphone": {
+            "title": "Smartphone Applications",
+            "description": "Popular apps for using GPX files",
+            "strava": {
+                "title": "Strava",
+                "steps": {
+                    "step1": "Open the Strava app",
+                    "step2": "Go to the Explore tab",
+                    "step3": "Touch Routes (requires Premium subscription)",
+                    "step4": "Touch the + symbol then Import a GPX file",
+                    "step5": "Select your GPX file"
+                }
+            },
+            "komoot": {
+                "title": "Komoot",
+                "steps": {
+                    "step1": "Open the Komoot app",
+                    "step2": "Go to the Profile tab",
+                    "step3": "Select Tours",
+                    "step4": "Press Import GPX",
+                    "step5": "Choose your GPX file"
+                }
+            },
+            "allTrails": {
+                "title": "AllTrails",
+                "steps": {
+                    "step1": "Open AllTrails in your browser (not available in the app)",
+                    "step2": "Click Create a route",
+                    "step3": "Select Import",
+                    "step4": "Choose your GPX file"
+                }
+            },
+            "viewRanger": {
+                "title": "ViewRanger / Outdooractive",
+                "steps": {
+                    "step1": "Open the ViewRanger app (now Outdooractive)",
+                    "step2": "Go to Menu then My Routes",
+                    "step3": "Press + then Import",
+                    "step4": "Select the GPX file"
+                }
+            },
+            "note": "Most running, hiking and navigation apps support GPX file import. Some features may require a subscription."
+        },
+        "generalTips": {
+            "title": "General tips",
+            "subtitle": "For optimal use of GPX routes",
+            "battery": {
+                "title": "Battery life",
+                "description": "Following a GPX route consumes more battery than normal recording. Make sure your watch is well charged before leaving."
+            },
+            "complexity": {
+                "title": "Route complexity",
+                "description": "A very detailed GPX file with many points can slow down some devices. If you encounter problems, try a simplified version of the route."
+            },
+            "alerts": {
+                "title": "Deviation alerts",
+                "description": "Configure route deviation alerts in your device settings to be notified if you stray from the planned route."
+            },
+            "offline": {
+                "title": "Offline mapping",
+                "description": "For areas with poor network coverage, download offline maps before your outing."
+            },
+            "safety": {
+                "title": "Safety",
+                "description": "Don't constantly stare at your watch while running. Pay attention to your environment and consult the route only when it's safe to do so."
+            },
+            "test": "Test the import and navigation on your device before leaving for a long outing. This will allow you to familiarize yourself with the interface and features."
+        },
+        "backToHome": "Back to home",
+        "links": {
+            "home": "/en/"
+        }
+    },
+    "footer": {
+        "title": "DrawYourPath",
+        "copyright": "© 2024 DrawYourPath. All rights reserved.",
+        "links": {
+            "title": "Links",
+            "about": "About",
+            "draw": "Draw",
+            "results": "Results",
+            "howToUseGpx": "How to use GPX file",
+            "urls": {
+                "home": "/en/",
+                "about": "#",
+                "draw": "/en/draw",
+                "results": "/en/results",
+                "howToUseGpx": "/en/howusegpx"
+            }
+        },
+        "social": {
+            "title": "Social"
+        }
+    }
+}

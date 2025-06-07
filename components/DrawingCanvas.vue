@@ -11,7 +11,7 @@
         class="absolute top-4 right-4 z-[1000] bg-success text-success-content px-3 py-2 rounded-lg shadow-lg"
       >
         <Icon name="ph:pencil-bold" class="mr-2" />
-        Mode dessin actif
+        {{ $t("drawingCanvas.modeActive") }}
       </div>
 
       <!-- Point counter overlay -->
@@ -20,28 +20,114 @@
         class="absolute top-4 left-4 z-[1000] bg-info text-info-content px-3 py-2 rounded-lg shadow-lg"
       >
         <Icon name="ph:map-pin-bold" class="mr-2" />
-        {{ mapStore.pointsCount }} points
+        {{ mapStore.pointsCount }} {{ $t("drawingCanvas.points") }}
       </div>
     </div>
 
     <!-- Map drawing controls -->
     <div class="options-container mt-4 w-full max-w-md">
+      <!-- API Key Section -->
+      <div class="form-control mb-6 p-4 bg-base-200 rounded-lg">
+        <label class="label">
+          <span class="label-text font-bold">
+            <Icon name="ph:key" class="mr-2" />
+            {{ $t("drawingCanvas.apiKey.title") }}
+          </span>
+        </label>
+
+        <div class="flex gap-2">
+          <input
+            v-model="apiKey"
+            type="password"
+            :placeholder="$t('drawingCanvas.apiKey.placeholder')"
+            class="input input-bordered flex-1"
+            :class="{
+              'input-success': isValidApiKey,
+              'input-error': apiKey && !isValidApiKey,
+            }"
+          />
+          <button
+            type="button"
+            @click="toggleApiKeyVisibility"
+            class="btn btn-square btn-outline"
+            :title="
+              showApiKey
+                ? $t('drawingCanvas.apiKey.hide')
+                : $t('drawingCanvas.apiKey.show')
+            "
+          >
+            <Icon :name="showApiKey ? 'ph:eye-slash' : 'ph:eye'" />
+          </button>
+        </div>
+
+        <div class="label">
+          <span v-if="!apiKey" class="label-text-alt text-warning">
+            <Icon name="ph:warning" class="mr-1" />
+            {{ $t("drawingCanvas.apiKey.required") }}
+          </span>
+          <span v-else-if="isValidApiKey" class="label-text-alt text-success">
+            <Icon name="ph:check" class="mr-1" />
+            {{ $t("drawingCanvas.apiKey.valid") }}
+          </span>
+          <span v-else class="label-text-alt text-error">
+            <Icon name="ph:x" class="mr-1" />
+            {{ $t("drawingCanvas.apiKey.invalid") }}
+          </span>
+        </div>
+
+        <!-- Instructions pour obtenir une clé API -->
+        <div class="collapse collapse-arrow bg-base-100 mt-2">
+          <input type="checkbox" />
+          <div class="collapse-title text-sm font-medium">
+            <Icon name="ph:question" class="mr-2" />
+            {{ $t("drawingCanvas.apiKey.instructionsTitle") }}
+          </div>
+          <div class="collapse-content text-xs">
+            <ol class="list-decimal list-inside space-y-2 mt-2">
+              <li>
+                {{ $t("drawingCanvas.apiKey.steps.step1") }}
+                <a
+                  href="https://openrouteservice.org/dev/#/signup"
+                  target="_blank"
+                  class="link link-primary"
+                >
+                  openrouteservice.org
+                </a>
+              </li>
+              <li>{{ $t("drawingCanvas.apiKey.steps.step2") }}</li>
+              <li>{{ $t("drawingCanvas.apiKey.steps.step3") }}</li>
+              <li>{{ $t("drawingCanvas.apiKey.steps.step4") }}</li>
+              <li>{{ $t("drawingCanvas.apiKey.steps.step5") }}</li>
+              <li>{{ $t("drawingCanvas.apiKey.steps.step6") }}</li>
+            </ol>
+            <div class="alert alert-info mt-3 p-2">
+              <Icon name="ph:info" class="mr-2" />
+              <span class="text-xs">
+                <strong>{{ $t("drawingCanvas.apiKey.freeInfo") }}</strong>
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Profile Selection -->
       <div class="form-control mb-4">
         <label class="label">
-          <span class="label-text">Type de parcours</span>
+          <span class="label-text">{{
+            $t("drawingCanvas.routeType.label")
+          }}</span>
         </label>
         <select v-model="routeProfile" class="select select-bordered">
-          <option value="foot">🚶 À pied / Course</option>
-          <option value="bike">🚴 Vélo</option>
-          <option value="car">🚗 Voiture</option>
+          <option value="foot">{{ $t("drawingCanvas.routeType.foot") }}</option>
+          <option value="bike">{{ $t("drawingCanvas.routeType.bike") }}</option>
+          <option value="car">{{ $t("drawingCanvas.routeType.car") }}</option>
         </select>
       </div>
 
       <!-- Distance Slider -->
       <div class="form-control">
         <label class="label">
-          <span class="label-text">Distance maximale</span>
+          <span class="label-text">{{ $t("drawingCanvas.maxDistance") }}</span>
         </label>
         <input
           v-model.number="maxDistance"
@@ -61,7 +147,9 @@
       <!-- User Location -->
       <div class="form-control mt-4">
         <label class="label cursor-pointer">
-          <span class="label-text">Centrer la carte sur ma position</span>
+          <span class="label-text">{{
+            $t("drawingCanvas.userLocation.label")
+          }}</span>
           <input
             type="checkbox"
             v-model="useUserLocation"
@@ -88,7 +176,9 @@
       <!-- Drawing Mode -->
       <div class="form-control mt-4">
         <label class="label cursor-pointer">
-          <span class="label-text">Activer le mode dessin à main levée</span>
+          <span class="label-text">{{
+            $t("drawingCanvas.drawingMode.label")
+          }}</span>
           <input
             type="checkbox"
             v-model="drawingModeActive"
@@ -97,20 +187,20 @@
         </label>
         <div v-if="mapStore.isDrawingMode" class="alert alert-success mt-2 p-2">
           <Icon name="ph:hand-pointing" class="mr-2" />
-          <span class="text-sm"
-            >Cliquez et faites glisser sur la carte pour dessiner votre
-            parcours.</span
-          >
+          <span class="text-sm">{{
+            $t("drawingCanvas.drawingMode.active")
+          }}</span>
         </div>
         <div
           v-else-if="mapStore.pointsCount > 0"
           class="alert alert-info mt-2 p-2"
         >
           <Icon name="ph:info" class="mr-2" />
-          <span class="text-sm"
-            >{{ mapStore.pointsCount }} points dessinés. Activez le mode dessin
-            pour continuer.</span
-          >
+          <span class="text-sm">{{
+            $t("drawingCanvas.drawingMode.pointsDrawn", {
+              count: mapStore.pointsCount,
+            })
+          }}</span>
         </div>
       </div>
     </div>
@@ -123,28 +213,38 @@
         :disabled="mapStore.pointsCount === 0"
       >
         <Icon name="ph:eraser" class="mr-2" />
-        Effacer
+        {{ $t("drawingCanvas.buttons.clear") }}
       </button>
 
       <button
         class="btn btn-success"
         @click="generatePath"
-        :disabled="mapStore.pointsCount < 2 || isGenerating"
+        :disabled="mapStore.pointsCount < 2 || isGenerating || !isValidApiKey"
         :class="{ loading: isGenerating }"
       >
         <Icon v-if="!isGenerating" name="ph:magic-wand" class="mr-2" />
-        {{ isGenerating ? "Génération..." : "Générer le parcours" }}
+        <span v-if="!apiKey">{{
+          $t("drawingCanvas.buttons.apiKeyRequired")
+        }}</span>
+        <span v-else-if="!isValidApiKey">{{
+          $t("drawingCanvas.buttons.apiKeyInvalid")
+        }}</span>
+        <span v-else>{{
+          isGenerating
+            ? $t("drawingCanvas.buttons.generating")
+            : $t("drawingCanvas.buttons.generate")
+        }}</span>
       </button>
     </div>
 
     <!-- Preview Info -->
     <div v-if="mapStore.pointsCount > 1" class="stats shadow mt-4 bg-base-100">
       <div class="stat">
-        <div class="stat-title">Aperçu du dessin</div>
+        <div class="stat-title">{{ $t("drawingCanvas.preview.title") }}</div>
         <div class="stat-value text-sm">
           {{ previewDistance.toFixed(2) }} km
         </div>
-        <div class="stat-desc">Distance estimée du dessin</div>
+        <div class="stat-desc">{{ $t("drawingCanvas.preview.distance") }}</div>
       </div>
     </div>
 
@@ -155,17 +255,18 @@
     >
       <Icon name="ph:info" class="mr-2" />
       <div>
-        <h4 class="font-bold">Comment dessiner votre parcours :</h4>
+        <h4 class="font-bold">{{ $t("drawingCanvas.help.title") }}</h4>
+        <p class="text-sm mb-2">
+          {{ $t("drawingCanvas.help.description") }}
+        </p>
+        <h5 class="font-semibold">{{ $t("drawingCanvas.help.howToTitle") }}</h5>
         <ol class="list-decimal list-inside mt-2 text-sm space-y-1">
-          <li>Activez le mode dessin avec la case à cocher ci-dessus</li>
-          <li>
-            Cliquez et faites glisser sur la carte pour dessiner votre forme
-          </li>
-          <li>Votre dessin apparaîtra en bleu sur la carte</li>
-          <li>Ajustez la distance maximale selon vos préférences</li>
-          <li>
-            Cliquez sur "Générer le parcours" pour créer votre itinéraire GPX
-          </li>
+          <li>{{ $t("drawingCanvas.help.steps.step1") }}</li>
+          <li>{{ $t("drawingCanvas.help.steps.step2") }}</li>
+          <li>{{ $t("drawingCanvas.help.steps.step3") }}</li>
+          <li>{{ $t("drawingCanvas.help.steps.step4") }}</li>
+          <li>{{ $t("drawingCanvas.help.steps.step5") }}</li>
+          <li>{{ $t("drawingCanvas.help.steps.step6") }}</li>
         </ol>
       </div>
     </div>
@@ -180,7 +281,9 @@
           <div
             class="loading loading-spinner loading-md mr-3 text-primary"
           ></div>
-          <h3 class="text-lg font-bold">Génération du parcours</h3>
+          <h3 class="text-lg font-bold">
+            {{ $t("drawingCanvas.generation.title") }}
+          </h3>
         </div>
 
         <div class="mb-4">
@@ -231,7 +334,7 @@
         <div class="border-t pt-4 mt-2 flex justify-end">
           <button @click="cancelGeneration" class="btn btn-sm btn-outline">
             <Icon name="ph:x" class="mr-2" />
-            Annuler
+            {{ $t("drawingCanvas.generation.cancel") }}
           </button>
         </div>
       </div>
@@ -244,10 +347,12 @@ import { ref, onMounted, watch, computed } from "vue";
 import { useRouter } from "vue-router";
 import { usePathStore } from "@/stores/path";
 import { useMapStore } from "@/stores/map";
+import { useI18n } from "vue-i18n";
 // Import Leaflet
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 
+const { t: $t } = useI18n();
 const router = useRouter();
 const pathStore = usePathStore();
 const mapStore = useMapStore();
@@ -262,6 +367,25 @@ const locationError = ref(false);
 const isDrawing = ref(false);
 const samplingRate = 10; // Reduced for smoother drawing
 let lastSampleTime = 0;
+const apiKey = ref("");
+const showApiKey = ref(false);
+
+// API Key validation and management
+const isValidApiKey = computed(() => {
+  // OpenRouteService API keys are typically 32 characters long
+  return apiKey.value.length >= 30 && /^[a-f0-9\-]+$/i.test(apiKey.value);
+});
+
+// Watch for API key changes and save to localStorage
+watch(apiKey, (newKey) => {
+  if (typeof window !== "undefined") {
+    if (newKey) {
+      localStorage.setItem("ors_api_key", newKey);
+    } else {
+      localStorage.removeItem("ors_api_key");
+    }
+  }
+});
 
 // Drawing mode computed property
 const drawingModeActive = computed({
@@ -416,7 +540,7 @@ function startDrawing(e: L.LeafletMouseEvent) {
   map!.scrollWheelZoom.disable();
 
   // Update drawing info
-  updateDrawingInfo("Dessin en cours...");
+  updateDrawingInfo($t("drawingCanvas.mapInfo.drawing"));
 }
 
 // Enhanced drawing with smooth point addition
@@ -450,7 +574,9 @@ function stopDrawing() {
       map.scrollWheelZoom.enable();
     }
 
-    updateDrawingInfo(`${mapStore.pointsCount} points dessinés`);
+    updateDrawingInfo(
+      $t("drawingCanvas.mapInfo.pointsCount", { count: mapStore.pointsCount })
+    );
   }
 }
 
@@ -505,7 +631,10 @@ function updateMapDisplay(points: { lat: number; lng: number }[]) {
         iconAnchor: [12, 12],
       }),
     }).addTo(map!);
-    startMarker.bindTooltip("Départ", { permanent: false, direction: "top" });
+    startMarker.bindTooltip($t("drawingCanvas.markers.start"), {
+      permanent: false,
+      direction: "top",
+    });
     markers.push(startMarker);
 
     // End point if different from start
@@ -521,13 +650,18 @@ function updateMapDisplay(points: { lat: number; lng: number }[]) {
           }),
         }
       ).addTo(map!);
-      endMarker.bindTooltip("Arrivée", { permanent: false, direction: "top" });
+      endMarker.bindTooltip($t("drawingCanvas.markers.end"), {
+        permanent: false,
+        direction: "top",
+      });
       markers.push(endMarker);
     }
   }
 
   updateDrawingInfo(
-    points.length > 0 ? `${points.length} points` : "Mode navigation"
+    points.length > 0
+      ? $t("drawingCanvas.mapInfo.pointsCount", { count: points.length })
+      : $t("drawingCanvas.mapInfo.navigation")
   );
 }
 
@@ -538,23 +672,20 @@ const currentStepIndex = ref(0);
 const isCancelled = ref(false);
 const generationSteps = [
   {
-    title: "Préparation des données",
-    description: "Analyse et optimisation des points de dessin...",
+    title: $t("drawingCanvas.generation.steps.preparation.title"),
+    description: $t("drawingCanvas.generation.steps.preparation.description"),
   },
   {
-    title: "Détection des points critiques",
-    description:
-      "Identification des virages et éléments importants du tracé...",
+    title: $t("drawingCanvas.generation.steps.detection.title"),
+    description: $t("drawingCanvas.generation.steps.detection.description"),
   },
   {
-    title: "Génération du parcours",
-    description:
-      "Recherche des routes existantes correspondant à votre dessin...",
+    title: $t("drawingCanvas.generation.steps.generation.title"),
+    description: $t("drawingCanvas.generation.steps.generation.description"),
   },
   {
-    title: "Finalisation",
-    description:
-      "Application des ajustements finaux et création du fichier GPX...",
+    title: $t("drawingCanvas.generation.steps.finalization.title"),
+    description: $t("drawingCanvas.generation.steps.finalization.description"),
   },
 ];
 
@@ -575,9 +706,18 @@ function cancelGeneration() {
 
 async function generatePath() {
   if (mapStore.pointsCount < 2) {
-    alert(
-      "Veuillez dessiner un chemin sur la carte avant de générer le parcours."
-    );
+    alert($t("drawingCanvas.alerts.minPoints"));
+    return;
+  }
+
+  // Vérifier la présence d'une clé API valide
+  if (!apiKey.value) {
+    alert($t("drawingCanvas.alerts.apiKeyRequired"));
+    return;
+  }
+
+  if (!isValidApiKey.value) {
+    alert($t("drawingCanvas.alerts.apiKeyInvalid"));
     return;
   }
 
@@ -600,7 +740,8 @@ async function generatePath() {
     const requestBody: any = {
       points: mapStore.drawingPoints,
       maxDistance: maxDistance.value,
-      profile: routeProfile.value, // Ajout du profil de route
+      profile: routeProfile.value,
+      apiKey: apiKey.value, // Inclure la clé API utilisateur
     };
 
     // Add user location if available for context
@@ -641,11 +782,19 @@ async function generatePath() {
 
     // Check if the response contains an error status code
     if (response.status >= 400) {
-      throw new Error(
+      // Gestion spéciale des erreurs API
+      let errorMessage =
         data.statusMessage ||
-          data.message ||
-          "Erreur lors de la génération du parcours"
-      );
+        data.message ||
+        $t("drawingCanvas.alerts.generateError", { error: "Erreur inconnue" });
+
+      if (response.status === 401 || response.status === 403) {
+        errorMessage = $t("drawingCanvas.alerts.apiError");
+      } else if (response.status === 429) {
+        errorMessage = $t("drawingCanvas.alerts.quotaError");
+      }
+
+      throw new Error(errorMessage);
     }
 
     // Step 4: Finalize
@@ -671,7 +820,7 @@ async function generatePath() {
       isGenerating.value = false;
 
       // Navigate to results page
-      router.push("/results");
+      router.push($t("drawingCanvas.links.results"));
     } else {
       throw new Error(
         data.statusMessage ||
@@ -689,10 +838,12 @@ async function generatePath() {
 
     // More user-friendly error handling
     const errorMessage =
-      error instanceof Error ? error.message : "Erreur inconnue";
-    alert(
-      `Échec de la génération du parcours: ${errorMessage}\n\nVeuillez vérifier votre connexion internet et réessayer.`
-    );
+      error instanceof Error
+        ? error.message
+        : $t("drawingCanvas.alerts.generateError", {
+            error: "Erreur inconnue",
+          });
+    alert($t("drawingCanvas.alerts.generateError", { error: errorMessage }));
     isGenerating.value = false;
   }
 }
@@ -714,13 +865,12 @@ async function simulateProgress(step: number, targetProgress: number) {
 // Enhanced user location management
 function getCurrentLocation() {
   if (!navigator.geolocation) {
-    locationStatus.value =
-      "La géolocalisation n'est pas prise en charge par votre navigateur";
+    locationStatus.value = $t("drawingCanvas.userLocation.unsupported");
     locationError.value = true;
     return;
   }
 
-  locationStatus.value = "Recherche de votre position...";
+  locationStatus.value = $t("drawingCanvas.userLocation.searching");
   locationError.value = false;
 
   const options = {
@@ -735,9 +885,9 @@ function getCurrentLocation() {
         lat: position.coords.latitude,
         lng: position.coords.longitude,
       };
-      locationStatus.value = `Position trouvée (précision: ${Math.round(
-        position.coords.accuracy
-      )}m)`;
+      locationStatus.value = $t("drawingCanvas.userLocation.found", {
+        accuracy: Math.round(position.coords.accuracy),
+      });
       locationError.value = false;
 
       // If enabled, center the map on the user's location
@@ -751,17 +901,17 @@ function getCurrentLocation() {
     },
     (error) => {
       console.error("Erreur de géolocalisation:", error);
-      let errorMsg = "Impossible d'obtenir votre position";
+      let errorMsg = $t("drawingCanvas.userLocation.error");
 
       switch (error.code) {
         case error.PERMISSION_DENIED:
-          errorMsg = "Permission de géolocalisation refusée";
+          errorMsg = $t("drawingCanvas.userLocation.denied");
           break;
         case error.POSITION_UNAVAILABLE:
-          errorMsg = "Position non disponible";
+          errorMsg = $t("drawingCanvas.userLocation.unavailable");
           break;
         case error.TIMEOUT:
-          errorMsg = "Délai de géolocalisation dépassé";
+          errorMsg = $t("drawingCanvas.userLocation.timeout");
           break;
       }
 
@@ -796,7 +946,7 @@ function addUserLocationMarker() {
     }
   ).addTo(map);
 
-  userMarker.bindTooltip("Votre position", {
+  userMarker.bindTooltip($t("drawingCanvas.markers.userPosition"), {
     permanent: false,
     direction: "top",
   });
@@ -840,6 +990,14 @@ onMounted(() => {
   // Initialize the map
   initMap();
 
+  // Load saved API key
+  if (typeof window !== "undefined") {
+    const savedApiKey = localStorage.getItem("ors_api_key");
+    if (savedApiKey) {
+      apiKey.value = savedApiKey;
+    }
+  }
+
   // Subscribe to map store changes
   mapStore.subscribeToDrawingEvents(updateMapDisplay);
 
@@ -856,6 +1014,18 @@ onMounted(() => {
   // Get user location on mount
   getCurrentLocation();
 });
+
+function toggleApiKeyVisibility() {
+  showApiKey.value = !showApiKey.value;
+
+  // Update input type
+  const input = document.querySelector(
+    'input[placeholder="Entrez votre clé API ici..."]'
+  ) as HTMLInputElement;
+  if (input) {
+    input.type = showApiKey.value ? "text" : "password";
+  }
+}
 </script>
 
 <style scoped>

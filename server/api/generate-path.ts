@@ -18,6 +18,7 @@ interface RequestBody {
   maxDistance: number;
   userLocation?: DrawingPoint;
   profile: 'foot' | 'bike' | 'car';
+  apiKey: string; // Clé API fournie par l'utilisateur
 }
 
 // Validation des entrées
@@ -81,11 +82,20 @@ function validateRequestBody(body: any): RequestBody {
   const validProfiles = ['foot', 'bike', 'car'] as const;
   const profile = validProfiles.includes(body.profile) ? body.profile : 'foot';
 
+  // Valider la clé API
+  if (!body.apiKey || typeof body.apiKey !== 'string' || body.apiKey.trim().length < 10) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Clé API OpenRouteService requise et valide'
+    });
+  }
+
   return {
     points: validPoints,
     maxDistance,
     userLocation,
-    profile
+    profile,
+    apiKey: body.apiKey.trim()
   };
 }
 
@@ -112,7 +122,7 @@ export default defineEventHandler(async (event) => {
     const rawBody = await readBody(event);
     const validatedBody = validateRequestBody(rawBody);
     
-    const { points: drawingPoints, maxDistance, userLocation, profile } = validatedBody;
+    const { points: drawingPoints, maxDistance, userLocation, profile, apiKey } = validatedBody;
     
     console.log(`Génération de parcours: ${drawingPoints.length} points, ${maxDistance}km max, profil: ${profile}`);
     
@@ -126,7 +136,7 @@ export default defineEventHandler(async (event) => {
     
     try {
       // Tentative avec l'API externe
-      routeCoordinates = await fetchRouteFromAPI(optimizedPoints, profile);
+      routeCoordinates = await fetchRouteFromAPI(optimizedPoints, profile, apiKey);
       routeGenerationMethod = 'api';
       console.log(`Route générée via API: ${routeCoordinates.length} points`);
     } catch (apiError) {
