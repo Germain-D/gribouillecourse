@@ -4,6 +4,10 @@
 
 **GribouilleCourse** (French) / **DrawYourPath** (English) is a free web application that allows you to draw freehand paths on a map and automatically converts them into real GPX routes following existing roads, trails, and paths. Perfect for runners, cyclists, and hikers who want to create unique routes from their imagination.
 
+<div align="center">
+  <img src="public/assets/img/logo-gribouillecourse-orange.png" alt="GribouilleCourse Logo" width="200"/>
+</div>
+
 ## ✨ Features
 
 - **🎨 Freehand Drawing**: Draw your route idea directly on an interactive map with your mouse or finger
